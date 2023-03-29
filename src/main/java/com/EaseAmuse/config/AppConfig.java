@@ -13,24 +13,24 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @Configuration
 public class AppConfig {
 
-	
 	@Bean
 	public SecurityFilterChain springSecurityConfiguration(HttpSecurity http) throws Exception {
 
-		http
-		.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-		.and()
-		.csrf().disable()
-		.authorizeHttpRequests()
-		.requestMatchers(HttpMethod.POST, "/customers").permitAll()
-		.requestMatchers(HttpMethod.GET, "/customers").hasRole("ADMIN")
-		.requestMatchers(HttpMethod.GET, "/customers/**").hasAnyRole("ADMIN","USER")		
-		.anyRequest().authenticated().and()
-		.addFilterAfter(new JwtTokenGeneratorFilter(), BasicAuthenticationFilter.class)
-		.addFilterBefore(new JwtTokenValidatorFilter(), BasicAuthenticationFilter.class)
-		.formLogin()
-		.and()
-		.httpBasic();
+		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().csrf().disable()
+				.authorizeHttpRequests()
+				.requestMatchers(HttpMethod.GET, "/amusementParks/**").permitAll()
+				.requestMatchers(HttpMethod.GET, "/activities/**").permitAll()
+				.requestMatchers(HttpMethod.POST, "/customers/").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
+				.requestMatchers(HttpMethod.GET, "/customers/**").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
+				.requestMatchers(HttpMethod.GET, "/managers/**").hasAnyRole("ADMIN", "MANAGER")
+				.requestMatchers("/managers/**").hasRole("MANAGER")
+				.requestMatchers("/admins/**").hasRole("ADMIN")
+				.requestMatchers("/customers/**").hasRole("CUSTOMER")
+				.anyRequest().authenticated()
+				.and()
+				.addFilterAfter(new JwtTokenGeneratorFilter(), BasicAuthenticationFilter.class)
+				.addFilterBefore(new JwtTokenValidatorFilter(), BasicAuthenticationFilter.class).formLogin().and()
+				.httpBasic();
 
 		return http.build();
 

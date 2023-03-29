@@ -24,19 +24,17 @@ public class JwtTokenGeneratorFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 
-		System.out.println("inside doFilter....");
-
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (null != authentication) {
 
-			System.out.println("authenticationnnn " + authentication);
+//			System.out.println("authentication 2 " + authentication);
 
 			SecretKey key = Keys.hmacShaKeyFor(SecurityConstants.JWT_KEY.getBytes());
 
-			String jwt = Jwts.builder().setIssuer("Ratan").setSubject("JWT Token")
+			String jwt = Jwts.builder().setIssuer("Akash").setSubject("JWT Token")
 					.claim("username", authentication.getName()).claim("role", getRole(authentication.getAuthorities()))
 					.setIssuedAt(new Date()).setExpiration(new Date(new Date().getTime() + 30000000)) // expiration time
-																										// of 8 hours
+																										// // of 8 hours
 					.signWith(key).compact();
 
 			response.setHeader(SecurityConstants.JWT_HEADER, jwt);

@@ -1,5 +1,6 @@
 package com.EaseAmuse.models;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,11 +24,11 @@ public class Manager {
 	private Integer managerId;
 	private String name;
 	private String password;
+	@Column(unique = true)
 	private String email;
 	private String mobile;
-	private String role;
+	private final String role = "MANAGER";
 	@OneToOne
 	private AmusementPark amusementPark;
 
-	
 }

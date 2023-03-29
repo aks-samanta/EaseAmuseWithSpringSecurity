@@ -3,26 +3,26 @@ package com.EaseAmuse.services;
 import java.util.List;
 
 import com.EaseAmuse.exceptions.ResourceNotFoundException;
-import com.EaseAmuse.payloads.AmusementParkInputDto;
-import com.EaseAmuse.payloads.AmusementParkOutputDto;
+import com.EaseAmuse.payloads.AmusementParkDto;
 
 public interface AmusementParkServices {
 
 	// create
-	AmusementParkOutputDto createAmusementPark(AmusementParkInputDto ParkDto);
+	AmusementParkDto createAmusementPark(AmusementParkDto ParkDto);
 
 	// readById
-	AmusementParkOutputDto getAmusementParkById(Integer parkId) throws ResourceNotFoundException;
+	AmusementParkDto getAmusementParkById(Integer parkId) throws ResourceNotFoundException;
 
 	// readByCity
-	List<AmusementParkOutputDto> getAmusementParksByCity(String city) throws ResourceNotFoundException;
+	List<AmusementParkDto> getAmusementParksByCity(String city) throws ResourceNotFoundException;
 
 	// readAll
-	List<AmusementParkOutputDto> getAllAmusementParks();
+	List<AmusementParkDto> getAllAmusementParks();
 
 	// update
-	AmusementParkOutputDto updateAmusementPark(Integer managerId, Integer parkId, AmusementParkInputDto parkDto)throws ResourceNotFoundException;
+	AmusementParkDto updateAmusementPark(Integer managerId, Integer parkId, AmusementParkDto parkDto)
+			throws ResourceNotFoundException;
 
 	// delete
-	AmusementParkOutputDto removeAmusementpark(Integer parkId) throws ResourceNotFoundException;
+	AmusementParkDto removeAmusementpark(Integer parkId) throws ResourceNotFoundException;
 }

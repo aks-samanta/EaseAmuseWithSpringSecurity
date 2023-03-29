@@ -7,6 +7,9 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,136 +19,135 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.EaseAmuse.exceptions.UnauthorisedException;
-import com.EaseAmuse.models.CurrentUserSession;
-import com.EaseAmuse.models.UserType;
-import com.EaseAmuse.payloads.ActivityInputDto;
-import com.EaseAmuse.payloads.ActivityOutputDto;
-import com.EaseAmuse.payloads.AmusementParkInputDto;
-import com.EaseAmuse.payloads.AmusementParkOutputDto;
-import com.EaseAmuse.payloads.DailyActivityInputDto;
-import com.EaseAmuse.payloads.DailyActivityOutputDto;
-import com.EaseAmuse.payloads.ManagerInputDto;
-import com.EaseAmuse.payloads.ManagerOutputDto;
-import com.EaseAmuse.services.ActivityServices;
-import com.EaseAmuse.services.AmusementParkServices;
+import com.EaseAmuse.payloads.ActivityDto;
+
+import com.EaseAmuse.payloads.AmusementParkDto;
+import com.EaseAmuse.payloads.DailyActivityDto;
+import com.EaseAmuse.payloads.ManagerDto;
 import com.EaseAmuse.services.ManagerServices;
-import com.EaseAmuse.services.SessionServices;
 
 @RestController
-@RequestMapping("/managers")
+@RequestMapping("/api/managers")
 public class ManagerController {
 
 	@Autowired
 	private ManagerServices managerServices;
 
 	@Autowired
-	private ActivityServices activityServices;
-
-	@Autowired
-	private AmusementParkServices parkServices;
-
-	@Autowired
-	private SessionServices sessionServices;
+	private PasswordEncoder passwordEncoder;
 
 	@PostMapping("/")
-	public ResponseEntity<ManagerOutputDto> createManager(@Valid @RequestBody ManagerInputDto managerDto) {
+	public ResponseEntity<ManagerDto> createManager(@Valid @RequestBody ManagerDto managerDto) {
+
+		managerDto.setPassword(passwordEncoder.encode(managerDto.getPassword()));
 
 		return new ResponseEntity<>(this.managerServices.insertManager(managerDto), HttpStatus.CREATED);
 
 	}
 
-	@PostMapping("/amusementPark/")
-	public ResponseEntity<AmusementParkOutputDto> createAmusementPark(
-			@Valid @RequestBody AmusementParkInputDto parkDto) {
+	@GetMapping("/signIn")
+	public ResponseEntity<ManagerDto> getLoggedInCustomerDetailsHandler(Authentication auth) {
+
+		ManagerDto manager = managerServices.getManagerByEmail(auth.getName());
+
+		// to get the token in body, pass HttpServletResponse inside this method
+		// parameter
+		// System.out.println(response.getHeaders(SecurityConstants.JWT_HEADER));
+
+		return new ResponseEntity<>(manager, HttpStatus.ACCEPTED);
+
+	}
+
+	@PutMapping("/")
+	public ResponseEntity<ManagerDto> updateManager(@Valid @RequestBody ManagerDto managerDto) {
+
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		Integer loggedInUserId = this.managerServices.getUserIdByEmail(auth.getPrincipal().toString());
+
+		return new ResponseEntity<>(this.managerServices.updateManager(loggedInUserId, managerDto), HttpStatus.OK);
+	}
+
+	@DeleteMapping("/")
+	public ResponseEntity<ManagerDto> deleteManager() {
+
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		Integer loggedInUserId = this.managerServices.getUserIdByEmail(auth.getPrincipal().toString());
+
+		return new ResponseEntity<>(this.managerServices.deleteManager(loggedInUserId), HttpStatus.OK);
+
+	}
+
+	@PostMapping("/amusementParks/")
+	public ResponseEntity<AmusementParkDto> createAmusementPark(@Valid @RequestBody AmusementParkDto parkDto) {
+
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		Integer loggedInUserId = this.managerServices.getUserIdByEmail(auth.getPrincipal().toString());
+
+		parkDto.setManagerId(loggedInUserId);
 
 		return new ResponseEntity<>(this.managerServices.createAmusementPark(parkDto), HttpStatus.CREATED);
 
 	}
 
-	@PutMapping("/")
-	public ResponseEntity<ManagerOutputDto> updateManager(@Valid @RequestBody ManagerInputDto managerDto) {
-		Integer managerId = 0;
-		return new ResponseEntity<>(this.managerServices.updateManager(managerId, managerDto), HttpStatus.OK);
-	}
+	@PostMapping("/dailyActivities/")
+	public ResponseEntity<DailyActivityDto> createDailyActivity(@Valid @RequestBody DailyActivityDto dailyActivityDto) {
 
-	@DeleteMapping("/")
-	public ResponseEntity<ManagerOutputDto> deleteManager(@RequestParam("session") String uuid) {
-		CurrentUserSession currentUserSession = this.sessionServices.getSessionByKey(uuid);
-		if (currentUserSession.getUserType() == UserType.MANAGER) {
-			return new ResponseEntity<>(this.managerServices.deleteManager(currentUserSession.getUserId()),
-					HttpStatus.OK);
-		} else {
-			throw new UnauthorisedException("Sorry ! You are not authorised to access this method!!");
-		}
-	}
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-	@PostMapping("/dailyActivity/")
-	public ResponseEntity<DailyActivityOutputDto> createDailyActivity(@RequestParam("session") String uuid,
-			@Valid @RequestBody DailyActivityInputDto dailyActivityInputDto) {
-		CurrentUserSession currentUserSession = this.sessionServices.getSessionByKey(uuid);
-		if (currentUserSession.getUserType() == UserType.MANAGER) {
-			return new ResponseEntity<>(
-					this.managerServices.createDailyActivity(currentUserSession.getUserId(), dailyActivityInputDto),
-					HttpStatus.OK);
-		} else {
-			throw new UnauthorisedException("Sorry ! You are not authorised to access this method!!");
-		}
+		Integer loggedInUserId = this.managerServices.getUserIdByEmail(auth.getPrincipal().toString());
+
+		return new ResponseEntity<>(this.managerServices.createDailyActivity(loggedInUserId, dailyActivityDto),
+				HttpStatus.OK);
 
 	}
 
 	@GetMapping("/dailyActivities/")
-	public ResponseEntity<List<DailyActivityOutputDto>> getAllDailyActivities(@RequestParam("session") String uuid) {
-		CurrentUserSession currentUserSession = this.sessionServices.getSessionByKey(uuid);
-		if (currentUserSession.getUserType() == UserType.MANAGER) {
-			return new ResponseEntity<>(this.managerServices.getAllDailyActivities(currentUserSession.getUserId()),
-					HttpStatus.OK);
-		} else {
-			throw new UnauthorisedException("Sorry ! You are not authorised to access this method!!");
-		}
+	public ResponseEntity<List<DailyActivityDto>> getAllDailyActivities() {
 
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		Integer loggedInUserId = this.managerServices.getUserIdByEmail(auth.getPrincipal().toString());
+
+		return new ResponseEntity<>(this.managerServices.getAllDailyActivities(loggedInUserId), HttpStatus.OK);
 	}
 
 	@GetMapping("/activities/")
-	public ResponseEntity<List<ActivityOutputDto>> getAllActivities(@RequestParam("session") String uuid) {
+	public ResponseEntity<List<ActivityDto>> getAllActivities(@RequestParam("session") String uuid) {
 
-		CurrentUserSession currentUserSession = this.sessionServices.getSessionByKey(uuid);
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-		if (currentUserSession.getUserType() == UserType.MANAGER) {
+		Integer loggedInUserId = this.managerServices.getUserIdByEmail(auth.getPrincipal().toString());
 
-			return new ResponseEntity<List<ActivityOutputDto>>(
-					this.managerServices.getAllActivities(currentUserSession.getUserId()), HttpStatus.FOUND);
+		return new ResponseEntity<List<ActivityDto>>(this.managerServices.getAllActivities(loggedInUserId),
+				HttpStatus.FOUND);
 
-		} else {
-			throw new UnauthorisedException("Sorry ! You are not authorised to access this method!!");
-		}
 	}
 
 	@PostMapping("/activities/")
-	public ResponseEntity<ActivityOutputDto> addActivity(@RequestParam("session") String uuid,
-			ActivityInputDto activityDto) {
+	public ResponseEntity<ActivityDto> addActivity(@RequestParam("session") String uuid, ActivityDto activityDto) {
 
-		CurrentUserSession currentUserSession = this.sessionServices.getSessionByKey(uuid);
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-		if (currentUserSession.getUserType() == UserType.MANAGER) {
-			return new ResponseEntity<ActivityOutputDto>(
-					this.managerServices.createActivity(currentUserSession.getUserId(), activityDto),
-					HttpStatus.CREATED);
-		} else {
-			throw new UnauthorisedException("Sorry ! You are not authorised to access this method!!");
-		}
+		Integer loggedInUserId = this.managerServices.getUserIdByEmail(auth.getPrincipal().toString());
+
+		return new ResponseEntity<ActivityDto>(this.managerServices.createActivity(loggedInUserId, activityDto),
+				HttpStatus.CREATED);
+
 	}
 
-	@GetMapping("/amusementPark/")
-	public ResponseEntity<AmusementParkOutputDto> getAmusementPark(@RequestParam("session") String uuid) {
-		CurrentUserSession currentUserSession = this.sessionServices.getSessionByKey(uuid);
+	@GetMapping("/amusementParks/")
+	public ResponseEntity<AmusementParkDto> getAmusementPark(@RequestParam("session") String uuid) {
 
-		if (currentUserSession.getUserType() == UserType.MANAGER) {
-			return new ResponseEntity<AmusementParkOutputDto>(
-					this.managerServices.getAmusementPark(currentUserSession.getUserId()), HttpStatus.FOUND);
-		} else {
-			throw new UnauthorisedException("Sorry ! You are not authorised to access this method!!");
-		}
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		Integer loggedInUserId = this.managerServices.getUserIdByEmail(auth.getPrincipal().toString());
+
+		return new ResponseEntity<AmusementParkDto>(this.managerServices.getAmusementPark(loggedInUserId),
+				HttpStatus.FOUND);
+
 	}
 
 }

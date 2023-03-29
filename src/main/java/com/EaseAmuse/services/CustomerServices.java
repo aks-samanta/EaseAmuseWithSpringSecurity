@@ -4,21 +4,24 @@ import java.util.List;
 
 import com.EaseAmuse.exceptions.CustomerException;
 import com.EaseAmuse.exceptions.ResourceNotFoundException;
-import com.EaseAmuse.payloads.CustomerInputDto;
-import com.EaseAmuse.payloads.CustomerOutputDto;
-import com.EaseAmuse.payloads.DailyActivityOutputDto;
+import com.EaseAmuse.payloads.CustomerDto;
+import com.EaseAmuse.payloads.DailyActivityDto;
 
 public interface CustomerServices {
 
-	CustomerOutputDto registerCustomer(CustomerInputDto customerDTO);
+	CustomerDto registerCustomer(CustomerDto customerDTO);
 
-	CustomerOutputDto getCustomerById(Integer customerId) throws CustomerException;
+	CustomerDto getCustomerById(Integer customerId) throws CustomerException;
 
-	CustomerOutputDto updateCustomer(Integer customerId, CustomerInputDto customerDTO) throws CustomerException;
+	CustomerDto updateCustomer(Integer customerId, CustomerDto customerDTO) throws CustomerException;
 
-	CustomerOutputDto deleteCustomer(Integer customerId) throws CustomerException;
+	CustomerDto deleteCustomer(Integer customerId) throws CustomerException;
 
-	List<CustomerOutputDto> getCustomersDetails() throws CustomerException;
+	List<CustomerDto> getCustomersDetails() throws CustomerException;
 
-	List<DailyActivityOutputDto> getDailyActivityOfPark(Integer parkId) throws ResourceNotFoundException;
+	List<DailyActivityDto> getDailyActivityOfPark(Integer parkId) throws ResourceNotFoundException;
+
+	Integer getUserIdByEmail(String email);
+
+	CustomerDto findByEmail(String name);
 }

@@ -6,15 +6,15 @@ import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
 import com.EaseAmuse.exceptions.CustomerException;
 import com.EaseAmuse.exceptions.ResourceNotFoundException;
 import com.EaseAmuse.models.AmusementPark;
 import com.EaseAmuse.models.Customer;
-import com.EaseAmuse.payloads.CustomerInputDto;
-import com.EaseAmuse.payloads.CustomerOutputDto;
-import com.EaseAmuse.payloads.DailyActivityOutputDto;
+import com.EaseAmuse.payloads.CustomerDto;
+import com.EaseAmuse.payloads.DailyActivityDto;
 import com.EaseAmuse.repositories.AmusementParkRepo;
 import com.EaseAmuse.repositories.CustomerRepo;
 
@@ -31,27 +31,27 @@ public class CustomerServicesImpl implements CustomerServices {
 	private AmusementParkRepo amusementParkRepo;
 
 	@Override
-	public CustomerOutputDto registerCustomer(CustomerInputDto customerDTO) {
+	public CustomerDto registerCustomer(CustomerDto customerDTO) {
 
 		Customer customer = this.modelMapper.map(customerDTO, Customer.class);
 
 		Customer savedCustomer = this.customerRepo.save(customer);
 
-		return this.modelMapper.map(savedCustomer, CustomerOutputDto.class);
+		return this.modelMapper.map(savedCustomer, CustomerDto.class);
 	}
 
 	@Override
-	public CustomerOutputDto getCustomerById(Integer customerId) {
+	public CustomerDto getCustomerById(Integer customerId) {
 
 		Customer foundCustomer = this.customerRepo.findById(customerId)
 				.orElseThrow(() -> new CustomerException("cutomer Not ound"));
 
-		return this.modelMapper.map(foundCustomer, CustomerOutputDto.class);
+		return this.modelMapper.map(foundCustomer, CustomerDto.class);
 
 	}
 
 	@Override
-	public CustomerOutputDto updateCustomer(Integer customerId, CustomerInputDto customerDTO) throws CustomerException {
+	public CustomerDto updateCustomer(Integer customerId, CustomerDto customerDTO) throws CustomerException {
 		// TODO Auto-generated method stub
 		Customer foundCustomer = this.customerRepo.findById(customerId)
 				.orElseThrow(() -> new CustomerException("customer not found"));
@@ -63,22 +63,22 @@ public class CustomerServicesImpl implements CustomerServices {
 
 		Customer updatedCustomer = this.customerRepo.save(foundCustomer);
 
-		return this.modelMapper.map(updatedCustomer, CustomerOutputDto.class);
+		return this.modelMapper.map(updatedCustomer, CustomerDto.class);
 
 	}
 
 	@Override
-	public CustomerOutputDto deleteCustomer(Integer customerId) throws CustomerException {
+	public CustomerDto deleteCustomer(Integer customerId) throws CustomerException {
 		// TODO Auto-generated method stub
 		Customer foundCustomer = this.customerRepo.findById(customerId)
 				.orElseThrow(() -> new CustomerException("customer not found"));
 
 		this.customerRepo.delete(foundCustomer);
-		return this.modelMapper.map(foundCustomer, CustomerOutputDto.class);
+		return this.modelMapper.map(foundCustomer, CustomerDto.class);
 	}
 
 	@Override
-	public List<CustomerOutputDto> getCustomersDetails() throws CustomerException {
+	public List<CustomerDto> getCustomersDetails() throws CustomerException {
 		// TODO Auto-generated method stub
 		List<Customer> lc = this.customerRepo.findAll();
 
@@ -86,24 +86,38 @@ public class CustomerServicesImpl implements CustomerServices {
 			throw new CustomerException("no customer available.");
 		}
 
-		List<CustomerOutputDto> listOfDtos = new ArrayList<>();
+		List<CustomerDto> listOfDtos = new ArrayList<>();
 		for (Customer customer : lc) {
-			listOfDtos.add(new CustomerOutputDto(customer.getCustomerId(), customer.getName(), customer.getEmail(),
-					customer.getMobile()));
+			listOfDtos.add(new CustomerDto(customer.getCustomerId(), customer.getName(), customer.getEmail(),
+					customer.getMobile(), customer.getPassword()));
 		}
 
 		return listOfDtos;
-		// return this.modelMapper.map(listOfDtos, CustomerOutputDTO.class);
+		// return this.modelMapper.map(listOfDtos, CustomerDTO.class);
 	}
 
 	@Override
-	public List<DailyActivityOutputDto> getDailyActivityOfPark(Integer parkId) {
+	public List<DailyActivityDto> getDailyActivityOfPark(Integer parkId) {
 		AmusementPark park = this.amusementParkRepo.findById(parkId)
 				.orElseThrow(() -> new ResourceNotFoundException("Park", "ParkID", parkId.toString()));
 
-		return park.getDailyActivities().stream().map((da) -> this.modelMapper.map(da, DailyActivityOutputDto.class))
+		return park.getDailyActivities().stream().map((da) -> this.modelMapper.map(da, DailyActivityDto.class))
 				.collect((Collectors.toList()));
 
+	}
+
+	@Override
+	public Integer getUserIdByEmail(String email) {
+		return this.customerRepo.findByEmail(email).get().getCustomerId();
+	}
+
+	@Override
+	public CustomerDto findByEmail(String email) {
+
+		Customer foundCustomer = this.customerRepo.findByEmail(email)
+				.orElseThrow(() -> new BadCredentialsException("Incorrect Username Or Password"));
+
+		return this.modelMapper.map(foundCustomer, CustomerDto.class);
 	}
 
 }

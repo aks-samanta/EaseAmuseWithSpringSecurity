@@ -18,7 +18,7 @@ import com.EaseAmuse.models.Customer;
 import com.EaseAmuse.models.Ticket;
 import com.EaseAmuse.models.TicketStatus;
 import com.EaseAmuse.payloads.BookingDto;
-import com.EaseAmuse.payloads.TicketOutputDto;
+import com.EaseAmuse.payloads.TicketDto;
 import com.EaseAmuse.repositories.BookingRepo;
 import com.EaseAmuse.repositories.CustomerRepo;
 import com.EaseAmuse.repositories.TicketRepo;
@@ -50,7 +50,7 @@ public class BookingServicesImpl implements BookingServices {
 		Booking booking = new Booking();
 
 		List<Ticket> tickets = this.ticketRepo.findByCustomerAndTicketStatus(customer, TicketStatus.PENDING);
-		if(tickets.size() == 0) {
+		if (tickets.size() == 0) {
 			throw new ResourceNotFoundException("Tickets", "Ticket Status", "PENDING");
 		}
 		Double totalPrice = 0.00;
@@ -65,8 +65,8 @@ public class BookingServicesImpl implements BookingServices {
 		booking.setBookingStatus(BookingStatus.CONFIRMED);
 		booking.setBookingDateTime(LocalDateTime.now());
 
-		List<TicketOutputDto> ticketDtos = tickets.stream().map((t) -> {
-			TicketOutputDto tDto = this.modelMapper.map(t, TicketOutputDto.class);
+		List<TicketDto> ticketDtos = tickets.stream().map((t) -> {
+			TicketDto tDto = this.modelMapper.map(t, TicketDto.class);
 			tDto.setDailyActivitiesId(t.getDailyActivity().getDailyActivityId());
 			return tDto;
 		}).collect(Collectors.toList());
@@ -84,8 +84,8 @@ public class BookingServicesImpl implements BookingServices {
 				.orElseThrow(() -> new ResourceNotFoundException("Booking", "Id", bookingId.toString()));
 		if (booking.getCustomer().getCustomerId() == customerId) {
 
-			List<TicketOutputDto> ticketDtos = booking.getTickets().stream()
-					.map((t) -> this.modelMapper.map(t, TicketOutputDto.class)).collect(Collectors.toList());
+			List<TicketDto> ticketDtos = booking.getTickets().stream()
+					.map((t) -> this.modelMapper.map(t, TicketDto.class)).collect(Collectors.toList());
 
 			BookingDto bookingDto = this.bookingToDto(booking);
 			bookingDto.setTicketDtos(ticketDtos);
@@ -106,8 +106,8 @@ public class BookingServicesImpl implements BookingServices {
 
 		List<BookingDto> bookingDtos = new ArrayList<BookingDto>();
 		for (Booking b : bookings) {
-			List<TicketOutputDto> ticketDtos = b.getTickets().stream()
-					.map((t) -> this.modelMapper.map(t, TicketOutputDto.class)).collect(Collectors.toList());
+			List<TicketDto> ticketDtos = b.getTickets().stream().map((t) -> this.modelMapper.map(t, TicketDto.class))
+					.collect(Collectors.toList());
 
 			BookingDto bookingDto = this.bookingToDto(b);
 
@@ -148,8 +148,8 @@ public class BookingServicesImpl implements BookingServices {
 
 	private BookingDto bookingToDto(Booking booking) {
 		BookingDto bookingDTO = this.modelMapper.map(booking, BookingDto.class);
-		List<TicketOutputDto> ticketDTOs = bookingDTO.getTicketDtos().stream()
-				.map((t) -> this.modelMapper.map(t, TicketOutputDto.class)).collect(Collectors.toList());
+		List<TicketDto> ticketDTOs = bookingDTO.getTicketDtos().stream()
+				.map((t) -> this.modelMapper.map(t, TicketDto.class)).collect(Collectors.toList());
 		bookingDTO.setTicketDtos(ticketDTOs);
 
 		return bookingDTO;

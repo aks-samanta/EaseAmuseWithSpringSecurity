@@ -11,8 +11,7 @@ import com.EaseAmuse.exceptions.ResourceNotFoundException;
 import com.EaseAmuse.exceptions.UnauthorisedException;
 import com.EaseAmuse.models.AmusementPark;
 import com.EaseAmuse.models.Manager;
-import com.EaseAmuse.payloads.AmusementParkInputDto;
-import com.EaseAmuse.payloads.AmusementParkOutputDto;
+import com.EaseAmuse.payloads.AmusementParkDto;
 import com.EaseAmuse.repositories.AmusementParkRepo;
 import com.EaseAmuse.repositories.ManagerRepo;
 
@@ -29,7 +28,7 @@ public class AmusementParkServicesImpl implements AmusementParkServices {
 	private AmusementParkRepo amusementParkRepo;
 
 	@Override
-	public AmusementParkOutputDto createAmusementPark(AmusementParkInputDto ParkDto) {
+	public AmusementParkDto createAmusementPark(AmusementParkDto ParkDto) {
 
 		Manager manager = this.managerRepo.findById(ParkDto.getManagerId()).orElseThrow(
 				() -> new ResourceNotFoundException("Customer", "customerId", ParkDto.getManagerId().toString()));
@@ -41,43 +40,43 @@ public class AmusementParkServicesImpl implements AmusementParkServices {
 		this.amusementParkRepo.save(park);
 		this.managerRepo.save(manager);
 
-		return this.modelMapper.map(park, AmusementParkOutputDto.class);
+		return this.modelMapper.map(park, AmusementParkDto.class);
 
 	}
 
 	@Override
-	public AmusementParkOutputDto getAmusementParkById(Integer parkId) throws ResourceNotFoundException {
+	public AmusementParkDto getAmusementParkById(Integer parkId) throws ResourceNotFoundException {
 
 		AmusementPark park = this.amusementParkRepo.findById(parkId)
 				.orElseThrow(() -> new ResourceNotFoundException("Amusement Park", "Park Id", parkId.toString()));
-		return this.modelMapper.map(park, AmusementParkOutputDto.class);
+		return this.modelMapper.map(park, AmusementParkDto.class);
 	}
 
 	@Override
-	public List<AmusementParkOutputDto> getAmusementParksByCity(String city) throws ResourceNotFoundException {
+	public List<AmusementParkDto> getAmusementParksByCity(String city) throws ResourceNotFoundException {
 
 		List<AmusementPark> parks = this.amusementParkRepo.findByCity(city)
 				.orElseThrow(() -> new ResourceNotFoundException("Amusemement Park", "City", city));
 
-		List<AmusementParkOutputDto> parkDtos = parks.stream()
-				.map(park -> this.modelMapper.map(park, AmusementParkOutputDto.class)).collect(Collectors.toList());
+		List<AmusementParkDto> parkDtos = parks.stream().map(park -> this.modelMapper.map(park, AmusementParkDto.class))
+				.collect(Collectors.toList());
 
 		return parkDtos;
 	}
 
 	@Override
-	public List<AmusementParkOutputDto> getAllAmusementParks() {
+	public List<AmusementParkDto> getAllAmusementParks() {
 
 		List<AmusementPark> parks = this.amusementParkRepo.findAll();
 
-		List<AmusementParkOutputDto> parkDtos = parks.stream()
-				.map(park -> this.modelMapper.map(park, AmusementParkOutputDto.class)).collect(Collectors.toList());
+		List<AmusementParkDto> parkDtos = parks.stream().map(park -> this.modelMapper.map(park, AmusementParkDto.class))
+				.collect(Collectors.toList());
 
 		return parkDtos;
 	}
 
 	@Override
-	public AmusementParkOutputDto updateAmusementPark(Integer managerId, Integer parkId, AmusementParkInputDto parkDto)
+	public AmusementParkDto updateAmusementPark(Integer managerId, Integer parkId, AmusementParkDto parkDto)
 			throws ResourceNotFoundException {
 
 		Manager manager = this.managerRepo.findById(managerId)
@@ -90,7 +89,7 @@ public class AmusementParkServicesImpl implements AmusementParkServices {
 			park.setCity(parkDto.getCity());
 			park.setName(parkDto.getName());
 			AmusementPark updatedPark = this.amusementParkRepo.save(park);
-			return this.modelMapper.map(updatedPark, AmusementParkOutputDto.class);
+			return this.modelMapper.map(updatedPark, AmusementParkDto.class);
 
 		} else {
 			throw new UnauthorisedException("You Are Not the manager of this Park so you cannot update this Park!");
@@ -99,13 +98,13 @@ public class AmusementParkServicesImpl implements AmusementParkServices {
 	}
 
 	@Override
-	public AmusementParkOutputDto removeAmusementpark(Integer parkId) throws ResourceNotFoundException {
+	public AmusementParkDto removeAmusementpark(Integer parkId) throws ResourceNotFoundException {
 		AmusementPark park = this.amusementParkRepo.findById(parkId)
 				.orElseThrow(() -> new ResourceNotFoundException("Amusement Park", "Park Id", parkId.toString()));
 
 		this.amusementParkRepo.delete(park);
 
-		return this.modelMapper.map(park, AmusementParkOutputDto.class);
+		return this.modelMapper.map(park, AmusementParkDto.class);
 
 	}
 

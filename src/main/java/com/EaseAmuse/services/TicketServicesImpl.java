@@ -10,8 +10,7 @@ import com.EaseAmuse.models.Customer;
 import com.EaseAmuse.models.DailyActivity;
 import com.EaseAmuse.models.Ticket;
 import com.EaseAmuse.models.TicketStatus;
-import com.EaseAmuse.payloads.TicketInputDto;
-import com.EaseAmuse.payloads.TicketOutputDto;
+import com.EaseAmuse.payloads.TicketDto;
 import com.EaseAmuse.repositories.CustomerRepo;
 import com.EaseAmuse.repositories.DailyActivityRepo;
 import com.EaseAmuse.repositories.TicketRepo;
@@ -32,13 +31,13 @@ public class TicketServicesImpl implements TicketServices {
 	private TicketRepo ticketRepo;
 
 	@Override
-	public TicketOutputDto cancelTicket(Integer customerId, Integer ticketId) throws ResourceNotFoundException {
+	public TicketDto cancelTicket(Integer customerId, Integer ticketId) throws ResourceNotFoundException {
 
 		Ticket foundTicket = this.ticketRepo.findById(ticketId)
 				.orElseThrow(() -> new ResourceNotFoundException("Ticket", "Ticket ID", ticketId.toString()));
 
 		if (foundTicket.getCustomer().getCustomerId() == customerId) {
-			if(foundTicket.getTicketStatus() == TicketStatus.CANCELLED) {
+			if (foundTicket.getTicketStatus() == TicketStatus.CANCELLED) {
 				throw new UnauthorisedException("Ticket Already Cancelled");
 			}
 			foundTicket.setTicketStatus(TicketStatus.CANCELLED);
@@ -51,17 +50,17 @@ public class TicketServicesImpl implements TicketServices {
 				.setSlotsRemaining(foundTicket.getDailyActivity().getSlotsRemaining() + foundTicket.getNoOfPerson());
 
 		this.dailyActivityRepo.save(foundTicket.getDailyActivity());
-		TicketOutputDto toutDto = this.modelMapper.map(foundTicket, TicketOutputDto.class);
+		TicketDto toutDto = this.modelMapper.map(foundTicket, TicketDto.class);
 		toutDto.setDailyActivitiesId(foundTicket.getDailyActivity().getDailyActivityId());
 		return toutDto;
 	}
 
 	@Override
-	public TicketOutputDto createTicket(Integer customerId, TicketInputDto ticketDto) throws ResourceNotFoundException {
+	public TicketDto createTicket(Integer customerId, TicketDto ticketDto) throws ResourceNotFoundException {
 
-		DailyActivity dailyActivity = dailyActivityRepo.findById(ticketDto.getDailyActivityId())
+		DailyActivity dailyActivity = dailyActivityRepo.findById(ticketDto.getDailyActivitiesId())
 				.orElseThrow(() -> new ResourceNotFoundException("DailyActivity", "DailyActivity ID",
-						ticketDto.getDailyActivityId().toString()));
+						ticketDto.getDailyActivitiesId().toString()));
 
 		Customer customer = this.customerRepo.findById(customerId)
 				.orElseThrow(() -> new ResourceNotFoundException("Customer", "customer ID", customerId.toString()));
@@ -81,9 +80,9 @@ public class TicketServicesImpl implements TicketServices {
 			DailyActivity updateDailyActivity = this.dailyActivityRepo.save(dailyActivity);
 
 			Ticket savedTicket = updateDailyActivity.getTickets().get(updateDailyActivity.getTickets().size() - 1);
-			TicketOutputDto ticketOutputDto = this.modelMapper.map(savedTicket, TicketOutputDto.class);
-			ticketOutputDto.setDailyActivitiesId(dailyActivity.getDailyActivityId());
-			return ticketOutputDto;
+			TicketDto ticketOutDto = this.modelMapper.map(savedTicket, TicketDto.class);
+			ticketOutDto.setDailyActivitiesId(dailyActivity.getDailyActivityId());
+			return ticketOutDto;
 		} else {
 			throw new UnauthorisedException("Available slots is less than " + ticketDto.getNoOfPerson());
 		}

@@ -7,6 +7,9 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,35 +17,24 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.EaseAmuse.exceptions.UnauthorisedException;
-import com.EaseAmuse.models.Booking;
-import com.EaseAmuse.models.CurrentUserSession;
-import com.EaseAmuse.models.UserType;
-import com.EaseAmuse.payloads.AmusementParkOutputDto;
+import com.EaseAmuse.payloads.AmusementParkDto;
 import com.EaseAmuse.payloads.BookingDto;
-import com.EaseAmuse.payloads.CustomerInputDto;
-import com.EaseAmuse.payloads.CustomerOutputDto;
-import com.EaseAmuse.payloads.DailyActivityOutputDto;
-import com.EaseAmuse.payloads.TicketInputDto;
-import com.EaseAmuse.payloads.TicketOutputDto;
+import com.EaseAmuse.payloads.CustomerDto;
+import com.EaseAmuse.payloads.DailyActivityDto;
+import com.EaseAmuse.payloads.TicketDto;
 import com.EaseAmuse.services.AmusementParkServices;
 import com.EaseAmuse.services.BookingServices;
 import com.EaseAmuse.services.CustomerServices;
-import com.EaseAmuse.services.SessionServices;
 import com.EaseAmuse.services.TicketServices;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/customers")
 public class CustomerController {
 
 	@Autowired
 	private CustomerServices customerServices;
-
-	@Autowired
-	private SessionServices sessionServices;
 
 	@Autowired
 	private BookingServices bookingServices;
@@ -53,158 +45,151 @@ public class CustomerController {
 	@Autowired
 	private AmusementParkServices parkServices;
 
-	@GetMapping("/amusementPark/{city}")
-	public ResponseEntity<List<AmusementParkOutputDto>> getAmusementParksByCity(
-			@Valid @RequestParam("Session") String uuid, @PathVariable("city") String city) {
-		CurrentUserSession currentUserSession = this.sessionServices.getSessionByKey(uuid);
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 
-		if (currentUserSession.getUserType() == UserType.CUSTOMER) {
-			return new ResponseEntity<List<AmusementParkOutputDto>>(this.parkServices.getAmusementParksByCity(city),
-					HttpStatus.FOUND);
-		} else {
-			throw new UnauthorisedException("Sorry you are not authorised.");
+	@PostMapping("/")
+	public ResponseEntity<CustomerDto> registerCustomer(@Valid @RequestBody CustomerDto customerDTO) {
 
-		}
-	}
+		customerDTO.setPassword(passwordEncoder.encode(customerDTO.getPassword()));
 
-	@GetMapping("/customer/dailyActivity/{parkId}")
-	public ResponseEntity<List<DailyActivityOutputDto>> getDailyActivityOfPark(
-			@Valid @RequestParam("Session") String uuid, @PathVariable("parkId") Integer parkId) {
-		CurrentUserSession currentUserSession = this.sessionServices.getSessionByKey(uuid);
-
-		if (currentUserSession.getUserType() == UserType.CUSTOMER) {
-			return new ResponseEntity<List<DailyActivityOutputDto>>(
-					this.customerServices.getDailyActivityOfPark(parkId), HttpStatus.FOUND);
-		} else {
-			throw new UnauthorisedException("Sorry you are not authorised.");
-
-		}
-	}
-
-	@PostMapping("/customer")
-	public ResponseEntity<CustomerOutputDto> registerCustomer(@Valid @RequestBody CustomerInputDto customerDTO) {
-
-		return new ResponseEntity<CustomerOutputDto>(this.customerServices.registerCustomer(customerDTO),
-				HttpStatus.CREATED);
+		return new ResponseEntity<CustomerDto>(this.customerServices.registerCustomer(customerDTO), HttpStatus.CREATED);
 
 	}
 
-	@GetMapping("/customer/{customerId}")
-	public ResponseEntity<CustomerOutputDto> getCustomerById(@PathVariable("customerId") Integer customerId) {
+	@GetMapping("/signIn")
+	public ResponseEntity<CustomerDto> getLoggedInCustomerDetailsHandler(Authentication auth) {
 
-		return new ResponseEntity<CustomerOutputDto>(this.customerServices.getCustomerById(customerId),
+		CustomerDto customer = customerServices.findByEmail(auth.getName());
+
+		// to get the token in body, pass HttpServletResponse inside this method
+		// parameter
+		// System.out.println(response.getHeaders(SecurityConstants.JWT_HEADER));
+
+		return new ResponseEntity<>(customer, HttpStatus.ACCEPTED);
+
+	}
+
+	@GetMapping("/")
+	public ResponseEntity<CustomerDto> getLoggedInCustomer() {
+
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		Integer loggedInUserId = this.customerServices.getUserIdByEmail(auth.getPrincipal().toString());
+
+		return new ResponseEntity<CustomerDto>(this.customerServices.getCustomerById(loggedInUserId), HttpStatus.FOUND);
+
+	}
+
+	@PutMapping("/")
+	public ResponseEntity<CustomerDto> updateCustomer(@Valid @RequestBody CustomerDto customerDTO) {
+
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		Integer loggedInUserId = this.customerServices.getUserIdByEmail(auth.getPrincipal().toString());
+
+		return new ResponseEntity<CustomerDto>(this.customerServices.updateCustomer(loggedInUserId, customerDTO),
+				HttpStatus.OK);
+	}
+
+	@DeleteMapping("/")
+	public ResponseEntity<CustomerDto> deleteCustomer() {
+
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		Integer loggedInUserId = this.customerServices.getUserIdByEmail(auth.getPrincipal().toString());
+
+		return new ResponseEntity<CustomerDto>(this.customerServices.deleteCustomer(loggedInUserId), HttpStatus.OK);
+	}
+
+	@GetMapping("/{customerId}")
+	public ResponseEntity<CustomerDto> getCustomerById(@PathVariable("customerId") Integer customerId) {
+
+		return new ResponseEntity<CustomerDto>(this.customerServices.getCustomerById(customerId), HttpStatus.FOUND);
+
+	}
+
+	@GetMapping("/amusementParks/{city}")
+	public ResponseEntity<List<AmusementParkDto>> getAmusementParksByCity(@PathVariable("city") String city) {
+
+		return new ResponseEntity<List<AmusementParkDto>>(this.parkServices.getAmusementParksByCity(city),
 				HttpStatus.FOUND);
 
 	}
 
-	@PutMapping("/customer/{customerId}")
-	public ResponseEntity<CustomerOutputDto> updateCustomer(@Valid @RequestBody CustomerInputDto customerInputDTO,
-			@PathVariable("customerId") Integer customerId) {
+	@GetMapping("/dailyActivities/{parkId}")
+	public ResponseEntity<List<DailyActivityDto>> getDailyActivityOfPark(@PathVariable("parkId") Integer parkId) {
 
-		return new ResponseEntity<CustomerOutputDto>(this.customerServices.updateCustomer(customerId, customerInputDTO),
+		return new ResponseEntity<List<DailyActivityDto>>(this.customerServices.getDailyActivityOfPark(parkId),
+				HttpStatus.FOUND);
+
+	}
+
+	@GetMapping("/bookings/")
+	public ResponseEntity<BookingDto> getBooking() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		Integer loggedInUserId = this.customerServices.getUserIdByEmail(auth.getPrincipal().toString());
+
+		return new ResponseEntity<BookingDto>(this.bookingServices.createBooking(loggedInUserId), HttpStatus.OK);
+
+	}
+
+	@GetMapping("/customers/allBookings")
+	public ResponseEntity<List<BookingDto>> getAllBookingsOfCustomer() {
+
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		Integer loggedInUserId = this.customerServices.getUserIdByEmail(auth.getPrincipal().toString());
+
+		return new ResponseEntity<List<BookingDto>>(this.bookingServices.getAllBookingsOfCustomer(loggedInUserId),
 				HttpStatus.OK);
-	}
-
-	@DeleteMapping("customer/{customerId}")
-	public ResponseEntity<CustomerOutputDto> deleteCustomer(@Valid @RequestBody CustomerInputDto customerInputDTO,
-			@PathVariable("customerId") Integer customerId) {
-
-		return new ResponseEntity<CustomerOutputDto>(this.customerServices.deleteCustomer(customerId), HttpStatus.OK);
-	}
-
-	@GetMapping("/customer/booking/")
-	public ResponseEntity<BookingDto> getBooking(@Valid @RequestParam("Session") String uuid) {
-
-		CurrentUserSession currentUserSession = this.sessionServices.getSessionByKey(uuid);
-
-		if (currentUserSession.getUserType() == UserType.CUSTOMER) {
-
-			return new ResponseEntity<BookingDto>(this.bookingServices.createBooking(currentUserSession.getUserId()),
-					HttpStatus.OK);
-		} else {
-
-			throw new UnauthorisedException("Sorry you are not authorised.");
-		}
 
 	}
 
-	@GetMapping("/customer/allBookings")
-	public ResponseEntity<List<BookingDto>> getAllBookingsOfCustomer(@Valid @RequestParam("Session") String uuid) {
+	@PutMapping("/bookings/cancelBookings")
+	public ResponseEntity<BookingDto> cancelBooking(Integer bookingId) {
 
-		CurrentUserSession currentUserSession = this.sessionServices.getSessionByKey(uuid);
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-		if (currentUserSession.getUserType() == UserType.CUSTOMER) {
+		Integer loggedInUserId = this.customerServices.getUserIdByEmail(auth.getPrincipal().toString());
 
-			return new ResponseEntity<List<BookingDto>>(
-					this.bookingServices.getAllBookingsOfCustomer(currentUserSession.getUserId()), HttpStatus.OK);
-		} else {
-
-			throw new UnauthorisedException("Sorry you are not authorised.");
-		}
-
-	}
-
-	@PutMapping("/bookings/cancelBooking")
-	public ResponseEntity<BookingDto> cancelBooking(@Valid @RequestParam("Session") String uuid, Integer bookingId) {
-		CurrentUserSession currentUserSession = this.sessionServices.getSessionByKey(uuid);
-
-		if (currentUserSession.getUserType() == UserType.CUSTOMER) {
-
-			return new ResponseEntity<BookingDto>(
-					this.bookingServices.cancelBooking(bookingId, currentUserSession.getUserId()), HttpStatus.OK);
-		} else {
-
-			throw new UnauthorisedException("Sorry you are not authorised.");
-		}
+		return new ResponseEntity<BookingDto>(this.bookingServices.cancelBooking(bookingId, loggedInUserId),
+				HttpStatus.OK);
 
 	}
 
 	@PutMapping("/tickets/cancelTickets")
-	public ResponseEntity<TicketOutputDto> cancelTicket(@Valid @RequestParam("Session") String uuid, Integer ticketId) {
-		CurrentUserSession currentUserSession = this.sessionServices.getSessionByKey(uuid);
+	public ResponseEntity<TicketDto> cancelTicket(Integer ticketId) {
 
-		if (currentUserSession.getUserType() == UserType.CUSTOMER) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-			return new ResponseEntity<TicketOutputDto>(
-					this.ticketServices.cancelTicket(currentUserSession.getUserId(), ticketId), HttpStatus.OK);
-		} else {
+		Integer loggedInUserId = this.customerServices.getUserIdByEmail(auth.getPrincipal().toString());
 
-			throw new UnauthorisedException("Sorry you are not authorised.");
-		}
-
+		return new ResponseEntity<TicketDto>(this.ticketServices.cancelTicket(loggedInUserId, ticketId), HttpStatus.OK);
 	}
 
 	@GetMapping("/customers/bookings/{bookingId}")
-	public ResponseEntity<BookingDto> getBookingById(@Valid @RequestParam("Session") String uuid,
-			@PathVariable Integer bookingId) {
+	public ResponseEntity<BookingDto> getBookingById(@PathVariable Integer bookingId) {
 
-		CurrentUserSession currentUserSession = this.sessionServices.getSessionByKey(uuid);
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-		if (currentUserSession.getUserType() == UserType.CUSTOMER) {
+		Integer loggedInUserId = this.customerServices.getUserIdByEmail(auth.getPrincipal().toString());
 
-			return new ResponseEntity<BookingDto>(
-					this.bookingServices.getBookingById(currentUserSession.getUserId(), bookingId), HttpStatus.OK);
-		} else {
-
-			throw new UnauthorisedException("Sorry you are not authorised.");
-		}
-
+		return new ResponseEntity<BookingDto>(this.bookingServices.getBookingById(loggedInUserId, bookingId),
+				HttpStatus.OK);
 	}
 
 	@PostMapping("/tickets/")
-	public ResponseEntity<TicketOutputDto> bookTicket(@Valid @RequestParam("Session") String uuid,
-			@Valid @RequestBody TicketInputDto ticketDto) {
-		CurrentUserSession currentUserSession = this.sessionServices.getSessionByKey(uuid);
+	public ResponseEntity<TicketDto> bookTicket(@Valid @RequestBody TicketDto ticketDto) {
 
-		if (currentUserSession.getUserType() == UserType.CUSTOMER) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-			return new ResponseEntity<TicketOutputDto>(
-					this.ticketServices.createTicket(currentUserSession.getUserId(), ticketDto), HttpStatus.CREATED);
+		Integer loggedInUserId = this.customerServices.getUserIdByEmail(auth.getPrincipal().toString());
 
-		} else {
+		return new ResponseEntity<TicketDto>(this.ticketServices.createTicket(loggedInUserId, ticketDto),
+				HttpStatus.CREATED);
 
-			throw new UnauthorisedException("Sorry you are not authorised.");
-		}
 	}
 
 }

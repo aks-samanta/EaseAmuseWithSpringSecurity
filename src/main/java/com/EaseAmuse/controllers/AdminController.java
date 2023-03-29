@@ -5,86 +5,79 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.EaseAmuse.exceptions.UnauthorisedException;
-import com.EaseAmuse.models.CurrentUserSession;
-import com.EaseAmuse.models.UserType;
-import com.EaseAmuse.payloads.AdminInputDto;
-import com.EaseAmuse.payloads.AdminOutputDto;
-import com.EaseAmuse.payloads.AmusementParkInputDto;
-import com.EaseAmuse.payloads.AmusementParkOutputDto;
-import com.EaseAmuse.payloads.ManagerInputDto;
-import com.EaseAmuse.payloads.ManagerOutputDto;
+import com.EaseAmuse.payloads.AdminDto;
+import com.EaseAmuse.payloads.AmusementParkDto;
+import com.EaseAmuse.payloads.ManagerDto;
 import com.EaseAmuse.services.AdminServices;
 import com.EaseAmuse.services.ManagerServices;
-import com.EaseAmuse.services.SessionServices;
 
 @RestController
-@RequestMapping("/admins")
+@RequestMapping("/api/admins")
 public class AdminController {
 
 	@Autowired
 	private AdminServices adminServices;
 
 	@Autowired
-	private SessionServices sessionServices;
-
-	@Autowired
 	private ManagerServices managerServices;
 
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+
 	@PostMapping("/")
-	public ResponseEntity<AdminOutputDto> createManager(@Valid @RequestBody AdminInputDto adminDto) {
+	public ResponseEntity<AdminDto> createAdmin(@Valid @RequestBody AdminDto adminDto) {
+
+		adminDto.setPassword(passwordEncoder.encode(adminDto.getPassword()));
 
 		return new ResponseEntity<>(this.adminServices.insertAdmin(adminDto), HttpStatus.CREATED);
 
 	}
 
+	@GetMapping("/signIn")
+	public ResponseEntity<AdminDto> getLoggedInCustomerDetailsHandler(Authentication auth) {
+
+		AdminDto admin = adminServices.getAdminByEmail(auth.getName());
+
+		// to get the token in body, pass HttpServletResponse inside this method
+		// parameter
+		// System.out.println(response.getHeaders(SecurityConstants.JWT_HEADER));
+
+		return new ResponseEntity<>(admin, HttpStatus.ACCEPTED);
+
+	}
+
 	@PutMapping("/")
-	public ResponseEntity<AdminOutputDto> updateAdmin(@RequestParam("session") String uuid,
-			@Valid @RequestBody AdminInputDto adminDto) {
+	public ResponseEntity<AdminDto> updateAdmin(@Valid @RequestBody AdminDto adminDto) {
 
-		CurrentUserSession currentUserSession = this.sessionServices.getSessionByKey(uuid);
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-		if (currentUserSession.getUserType() == UserType.ADMIN) {
-			return new ResponseEntity<>(this.adminServices.updateAdmin(currentUserSession.getUserId(), adminDto),
-					HttpStatus.OK);
-		} else {
-			throw new UnauthorisedException("Sorry ! You are not authorised to access this method!!");
-		}
+		Integer loggedInUserId = this.adminServices.getAdminIdByEmail(auth.getPrincipal().toString());
+
+		return new ResponseEntity<>(this.adminServices.updateAdmin(loggedInUserId, adminDto), HttpStatus.OK);
 
 	}
 
-	@PostMapping("/manager")
-	public ResponseEntity<ManagerOutputDto> createManager(@Valid @RequestBody ManagerInputDto managerDto,
-			@RequestParam("session") String uuid) {
+	@PostMapping("/managers")
+	public ResponseEntity<ManagerDto> createManager(@Valid @RequestBody ManagerDto managerDto) {
 
-		CurrentUserSession currentUserSession = this.sessionServices.getSessionByKey(uuid);
-
-		if (currentUserSession.getUserType() == UserType.ADMIN) {
-			return new ResponseEntity<>(this.managerServices.insertManager(managerDto), HttpStatus.CREATED);
-		} else {
-			throw new UnauthorisedException("Sorry ! You are not authorised to access this method!!");
-		}
+		return new ResponseEntity<>(this.managerServices.insertManager(managerDto), HttpStatus.CREATED);
 
 	}
 
-	@PostMapping("/amusementPark/")
-	public ResponseEntity<AmusementParkOutputDto> createAmusementPark(@Valid @RequestBody AmusementParkInputDto parkDto,
-			@RequestParam("session") String uuid) {
+	@PostMapping("/amusementParks")
+	public ResponseEntity<AmusementParkDto> createAmusementPark(@Valid @RequestBody AmusementParkDto parkDto) {
 
-		CurrentUserSession currentUserSession = this.sessionServices.getSessionByKey(uuid);
-
-		if (currentUserSession.getUserType() == UserType.ADMIN) {
-			return new ResponseEntity<>(this.adminServices.createAmusementPark(parkDto), HttpStatus.CREATED);
-		} else {
-			throw new UnauthorisedException("Sorry ! You are not authorised to access this method!!");
-		}
+		return new ResponseEntity<>(this.adminServices.createAmusementPark(parkDto), HttpStatus.CREATED);
 
 	}
 

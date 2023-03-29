@@ -33,7 +33,7 @@ public class Customer {
 	private String email;
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	private String password;
-	private String role;
+	private final String role = "CUSTOMER";
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	@OneToMany(mappedBy = "customer")
 	List<Booking> bookings = new ArrayList<>();

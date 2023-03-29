@@ -4,43 +4,36 @@ import java.util.Date;
 import java.util.List;
 
 import com.EaseAmuse.exceptions.ResourceNotFoundException;
-import com.EaseAmuse.payloads.ActivityInputDto;
-import com.EaseAmuse.payloads.ActivityOutputDto;
-import com.EaseAmuse.payloads.AdminInputDto;
-import com.EaseAmuse.payloads.AdminOutputDto;
-import com.EaseAmuse.payloads.AmusementParkInputDto;
-import com.EaseAmuse.payloads.AmusementParkOutputDto;
-import com.EaseAmuse.payloads.DailyActivityOutputDto;
-
+import com.EaseAmuse.payloads.ActivityDto;
+import com.EaseAmuse.payloads.AdminDto;
+import com.EaseAmuse.payloads.AmusementParkDto;
+import com.EaseAmuse.payloads.DailyActivityDto;
 
 public interface AdminServices {
-	
-	public AdminOutputDto insertAdmin(AdminInputDto adminInpDto) throws ResourceNotFoundException;
 
-	public AdminOutputDto updateAdmin(Integer adminId, AdminInputDto adminInpDto)
+	public AdminDto insertAdmin(AdminDto adminInpDto) throws ResourceNotFoundException;
+
+	public AdminDto updateAdmin(Integer adminId, AdminDto adminInpDto) throws ResourceNotFoundException;
+
+	public AdminDto deleteAdmin(Integer adminId) throws ResourceNotFoundException;
+
+	public AmusementParkDto createAmusementPark(AmusementParkDto amusementParkInpDto) throws ResourceNotFoundException;
+
+	public List<DailyActivityDto> getAllDailyActivities(Integer adminId) throws ResourceNotFoundException;
+
+	public List<DailyActivityDto> getDailyActivitiesCustomerwise(Integer customerId) throws ResourceNotFoundException;
+
+	public List<DailyActivityDto> getDailyActivitiesDatewise(Integer adminId, Date activityDate)
 			throws ResourceNotFoundException;
 
-	public AdminOutputDto deleteAdmin(Integer adminId) throws ResourceNotFoundException;
+	public List<ActivityDto> getAllActivities(Integer adminId) throws ResourceNotFoundException;
 
-	public AmusementParkOutputDto createAmusementPark(AmusementParkInputDto amusementParkInpDto)
-			throws ResourceNotFoundException;
+	public ActivityDto createActivity(Integer adminId, ActivityDto activityDto);
 
-	public List<DailyActivityOutputDto> getAllDailyActivities(Integer adminId) throws ResourceNotFoundException;
+	public AmusementParkDto getAmusementPark(Integer adminId);
 
-	public List<DailyActivityOutputDto> getDailyActivitiesCustomerwise( Integer customerId)
-			throws ResourceNotFoundException;
+	public Integer getAdminIdByEmail(String email);
 
-	public List<DailyActivityOutputDto> getDailyActivitiesDatewise(Integer adminId, Date activityDate) throws ResourceNotFoundException;
-	
-	
-	public List<ActivityOutputDto> getAllActivities(Integer adminId) throws ResourceNotFoundException;
-
-	
-	public ActivityOutputDto createActivity(Integer adminId, ActivityInputDto activityDto);
-	
-
-	public AmusementParkOutputDto getAmusementPark(Integer adminId);
-	
-	
+	AdminDto getAdminByEmail(String email);
 
 }

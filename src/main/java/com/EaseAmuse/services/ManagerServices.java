@@ -1,48 +1,42 @@
 package com.EaseAmuse.services;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
 import com.EaseAmuse.exceptions.ResourceNotFoundException;
-import com.EaseAmuse.models.AmusementPark;
-import com.EaseAmuse.models.DailyActivity;
-import com.EaseAmuse.models.Manager;
-import com.EaseAmuse.payloads.ActivityInputDto;
-import com.EaseAmuse.payloads.ActivityOutputDto;
-import com.EaseAmuse.payloads.AmusementParkInputDto;
-import com.EaseAmuse.payloads.AmusementParkOutputDto;
-import com.EaseAmuse.payloads.DailyActivityInputDto;
-import com.EaseAmuse.payloads.DailyActivityOutputDto;
-import com.EaseAmuse.payloads.ManagerInputDto;
-import com.EaseAmuse.payloads.ManagerOutputDto;
+
+import com.EaseAmuse.payloads.ActivityDto;
+import com.EaseAmuse.payloads.AmusementParkDto;
+import com.EaseAmuse.payloads.DailyActivityDto;
+import com.EaseAmuse.payloads.ManagerDto;
 
 public interface ManagerServices {
 
-	public ManagerOutputDto insertManager(ManagerInputDto managerInpDto) throws ResourceNotFoundException;
+	public ManagerDto insertManager(ManagerDto managerInpDto) throws ResourceNotFoundException;
 
-	public ManagerOutputDto updateManager(Integer managerId, ManagerInputDto managerInpDto)
+	public ManagerDto updateManager(Integer managerId, ManagerDto managerInpDto) throws ResourceNotFoundException;
+
+	public ManagerDto deleteManager(Integer managerId) throws ResourceNotFoundException;
+
+	public AmusementParkDto createAmusementPark(AmusementParkDto amusementParkInpDto) throws ResourceNotFoundException;
+
+	public List<DailyActivityDto> getAllDailyActivities(Integer managerId) throws ResourceNotFoundException;
+
+	public List<DailyActivityDto> getDailyActivitiesCustomerwise(Integer customerId) throws ResourceNotFoundException;
+
+	public List<DailyActivityDto> getDailyActivitiesDatewise(Integer managerId, Date activityDate)
 			throws ResourceNotFoundException;
 
-	public ManagerOutputDto deleteManager(Integer managerId) throws ResourceNotFoundException;
+	public List<ActivityDto> getAllActivities(Integer managerId) throws ResourceNotFoundException;
 
-	public AmusementParkOutputDto createAmusementPark(AmusementParkInputDto amusementParkInpDto)
+	public ActivityDto createActivity(Integer managerId, ActivityDto activityDto);
+
+	public AmusementParkDto getAmusementPark(Integer managerId);
+
+	public DailyActivityDto createDailyActivity(Integer managerId, DailyActivityDto dailyActivityDto)
 			throws ResourceNotFoundException;
 
-	public List<DailyActivityOutputDto> getAllDailyActivities(Integer managerId) throws ResourceNotFoundException;
+	public Integer getUserIdByEmail(String email);
 
-	public List<DailyActivityOutputDto> getDailyActivitiesCustomerwise(Integer customerId)
-			throws ResourceNotFoundException;
-
-	public List<DailyActivityOutputDto> getDailyActivitiesDatewise(Integer managerId, Date activityDate)
-			throws ResourceNotFoundException;
-
-	public List<ActivityOutputDto> getAllActivities(Integer managerId) throws ResourceNotFoundException;
-
-	public ActivityOutputDto createActivity(Integer managerId, ActivityInputDto activityDto);
-
-	public AmusementParkOutputDto getAmusementPark(Integer managerId);
-
-	public DailyActivityOutputDto createDailyActivity(Integer managerId, DailyActivityInputDto dailyActivityDto)
-			throws ResourceNotFoundException;
+	public ManagerDto getManagerByEmail(String email);
 }

@@ -23,6 +23,6 @@ public class BookingDto {
 	private BookingStatus bookingStatus;
 	private Integer customerId;
 	private String customerName;
-	private List<TicketOutputDto> ticketDtos = new ArrayList<>();
+	private List<TicketDto> ticketDtos = new ArrayList<>();
 
 }

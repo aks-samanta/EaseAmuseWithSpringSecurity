@@ -12,12 +12,10 @@ import com.EaseAmuse.exceptions.UnauthorisedException;
 import com.EaseAmuse.models.Activity;
 import com.EaseAmuse.models.AmusementPark;
 import com.EaseAmuse.models.Manager;
-import com.EaseAmuse.payloads.ActivityInputDto;
-import com.EaseAmuse.payloads.ActivityOutputDto;
+import com.EaseAmuse.payloads.ActivityDto;
 import com.EaseAmuse.repositories.ActivityRepo;
 import com.EaseAmuse.repositories.AmusementParkRepo;
 import com.EaseAmuse.repositories.ManagerRepo;
-
 
 @Service
 public class ActivityServicesImpl implements ActivityServices {
@@ -35,7 +33,7 @@ public class ActivityServicesImpl implements ActivityServices {
 	private ModelMapper modelMapper;
 
 	@Override
-	public ActivityOutputDto createActivity(Integer managerId, ActivityInputDto activityDto) {
+	public ActivityDto createActivity(Integer managerId, ActivityDto activityDto) {
 
 		Manager manager = this.managerRepo.findById(managerId)
 				.orElseThrow(() -> new ResourceNotFoundException("Manager", "ManagerId", managerId.toString()));
@@ -51,57 +49,57 @@ public class ActivityServicesImpl implements ActivityServices {
 
 		Activity createdActivity = updatedPark.getActivities().get(updatedPark.getActivities().size() - 1);
 
-		return this.modelMapper.map(createdActivity, ActivityOutputDto.class);
+		return this.modelMapper.map(createdActivity, ActivityDto.class);
 
 	}
 
 	@Override
-	public List<ActivityOutputDto> getAllActivities() {
+	public List<ActivityDto> getAllActivities() {
 		List<Activity> activities = this.activityRepo.findAll();
 
-		List<ActivityOutputDto> activityDos = activities.stream()
-				.map((a) -> this.modelMapper.map(a, ActivityOutputDto.class)).collect(Collectors.toList());
+		List<ActivityDto> activityDos = activities.stream().map((a) -> this.modelMapper.map(a, ActivityDto.class))
+				.collect(Collectors.toList());
 
 		return activityDos;
 	}
 
 	@Override
-	public List<ActivityOutputDto> getActivitiesByCharges(Double charges) throws ResourceNotFoundException {
+	public List<ActivityDto> getActivitiesByCharges(Double charges) throws ResourceNotFoundException {
 
 		List<Activity> activities = this.activityRepo.findByCharges(charges);
 
-		List<ActivityOutputDto> activityDos = activities.stream()
-				.map((a) -> this.modelMapper.map(a, ActivityOutputDto.class)).collect(Collectors.toList());
+		List<ActivityDto> activityDos = activities.stream().map((a) -> this.modelMapper.map(a, ActivityDto.class))
+				.collect(Collectors.toList());
 
 		return activityDos;
 	}
 
 	@Override
-	public List<ActivityOutputDto> getAllActivitiesOfPark(Integer parkId) throws ResourceNotFoundException {
+	public List<ActivityDto> getAllActivitiesOfPark(Integer parkId) throws ResourceNotFoundException {
 
 		AmusementPark park = this.parkRepo.findById(parkId)
 				.orElseThrow(() -> new ResourceNotFoundException("AmusementPark", "park Id", parkId.toString()));
 
 		List<Activity> activities = this.activityRepo.findByAmusementPark(park);
 
-		List<ActivityOutputDto> activityDos = activities.stream()
-				.map((a) -> this.modelMapper.map(a, ActivityOutputDto.class)).collect(Collectors.toList());
+		List<ActivityDto> activityDos = activities.stream().map((a) -> this.modelMapper.map(a, ActivityDto.class))
+				.collect(Collectors.toList());
 
 		return activityDos;
 	}
 
 	@Override
-	public ActivityOutputDto getActivityById(Integer Id) throws ResourceNotFoundException {
+	public ActivityDto getActivityById(Integer Id) throws ResourceNotFoundException {
 
 		Activity activity = this.activityRepo.findById(Id)
 				.orElseThrow(() -> new ResourceNotFoundException("Activity", "Activity Id", Id.toString()));
 
-		return this.modelMapper.map(activity, ActivityOutputDto.class);
+		return this.modelMapper.map(activity, ActivityDto.class);
 
 	}
 
 	@Override
-	public ActivityOutputDto updateActivity(Integer managerId, Integer activityId, ActivityInputDto activityDto)
+	public ActivityDto updateActivity(Integer managerId, Integer activityId, ActivityDto activityDto)
 			throws ResourceNotFoundException {
 
 		Activity activity = this.activityRepo.findById(activityId)
@@ -114,14 +112,14 @@ public class ActivityServicesImpl implements ActivityServices {
 
 			Activity savedActivity = this.activityRepo.save(activity);
 
-			return this.modelMapper.map(savedActivity, ActivityOutputDto.class);
+			return this.modelMapper.map(savedActivity, ActivityDto.class);
 		} else {
 			throw new UnauthorisedException("You are not authorised to update this Activity!");
 		}
 	}
 
 	@Override
-	public ActivityOutputDto deleteActivity(Integer managerId, Integer activityId) throws ResourceNotFoundException {
+	public ActivityDto deleteActivity(Integer managerId, Integer activityId) throws ResourceNotFoundException {
 
 		Activity activity = this.activityRepo.findById(activityId)
 				.orElseThrow(() -> new ResourceNotFoundException("Activity", "activity Id", activityId.toString()));
@@ -130,7 +128,7 @@ public class ActivityServicesImpl implements ActivityServices {
 
 			this.activityRepo.delete(activity);
 
-			return this.modelMapper.map(activity, ActivityOutputDto.class);
+			return this.modelMapper.map(activity, ActivityDto.class);
 		} else {
 			throw new UnauthorisedException("You are not authorised to delete this Activity!");
 		}

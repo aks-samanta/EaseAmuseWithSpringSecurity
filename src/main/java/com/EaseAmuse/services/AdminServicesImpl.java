@@ -9,21 +9,15 @@ import org.springframework.stereotype.Service;
 
 import com.EaseAmuse.exceptions.ResourceNotFoundException;
 import com.EaseAmuse.models.Admin;
-import com.EaseAmuse.models.Manager;
-import com.EaseAmuse.payloads.ActivityInputDto;
-import com.EaseAmuse.payloads.ActivityOutputDto;
-import com.EaseAmuse.payloads.AdminInputDto;
-import com.EaseAmuse.payloads.AdminOutputDto;
-import com.EaseAmuse.payloads.AmusementParkInputDto;
-import com.EaseAmuse.payloads.AmusementParkOutputDto;
-import com.EaseAmuse.payloads.DailyActivityOutputDto;
-import com.EaseAmuse.payloads.ManagerOutputDto;
+import com.EaseAmuse.payloads.ActivityDto;
+import com.EaseAmuse.payloads.AdminDto;
+import com.EaseAmuse.payloads.AmusementParkDto;
+import com.EaseAmuse.payloads.DailyActivityDto;
 import com.EaseAmuse.repositories.ActivityRepo;
 import com.EaseAmuse.repositories.AdminRepo;
 import com.EaseAmuse.repositories.AmusementParkRepo;
 import com.EaseAmuse.repositories.CustomerRepo;
 import com.EaseAmuse.repositories.DailyActivityRepo;
-import com.EaseAmuse.repositories.ManagerRepo;
 
 @Service
 public class AdminServicesImpl implements AdminServices {
@@ -50,19 +44,19 @@ public class AdminServicesImpl implements AdminServices {
 	ActivityRepo activityRepo;
 
 	@Override
-	public AdminOutputDto insertAdmin(AdminInputDto adminInpDto) throws ResourceNotFoundException {
+	public AdminDto insertAdmin(AdminDto adminInpDto) throws ResourceNotFoundException {
 
 		Admin admin = this.modelMapper.map(adminInpDto, Admin.class);
 
 		Admin savedAdmin = this.adminRepo.save(admin);
 
-		return this.modelMapper.map(savedAdmin, AdminOutputDto.class);
+		return this.modelMapper.map(savedAdmin, AdminDto.class);
 
 	}
 
 	@Override
-	public AdminOutputDto updateAdmin(Integer adminId, AdminInputDto adminInpDto) throws ResourceNotFoundException {
-		
+	public AdminDto updateAdmin(Integer adminId, AdminDto adminInpDto) throws ResourceNotFoundException {
+
 		Admin foundAdmin = this.adminRepo.findById(adminId)
 				.orElseThrow(() -> new ResourceNotFoundException("Admin", "adminId", adminId.toString()));
 
@@ -73,60 +67,72 @@ public class AdminServicesImpl implements AdminServices {
 
 		Admin updatedAdmin = this.adminRepo.save(foundAdmin);
 
-		return this.modelMapper.map(updatedAdmin, AdminOutputDto.class);
-		
+		return this.modelMapper.map(updatedAdmin, AdminDto.class);
+
 	}
 
 	@Override
-	public AdminOutputDto deleteAdmin(Integer adminId) throws ResourceNotFoundException {
+	public AdminDto deleteAdmin(Integer adminId) throws ResourceNotFoundException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public AmusementParkOutputDto createAmusementPark(AmusementParkInputDto amusementParkInpDto)
-			throws ResourceNotFoundException {
+	public AmusementParkDto createAmusementPark(AmusementParkDto amusementParkInpDto) throws ResourceNotFoundException {
 
 		return amusementParkServices.createAmusementPark(amusementParkInpDto);
 
 	}
 
 	@Override
-	public List<DailyActivityOutputDto> getAllDailyActivities(Integer adminId) throws ResourceNotFoundException {
+	public List<DailyActivityDto> getAllDailyActivities(Integer adminId) throws ResourceNotFoundException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<DailyActivityOutputDto> getDailyActivitiesCustomerwise(Integer customerId)
+	public List<DailyActivityDto> getDailyActivitiesCustomerwise(Integer customerId) throws ResourceNotFoundException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<DailyActivityDto> getDailyActivitiesDatewise(Integer adminId, Date activityDate)
 			throws ResourceNotFoundException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<DailyActivityOutputDto> getDailyActivitiesDatewise(Integer adminId, Date activityDate)
-			throws ResourceNotFoundException {
+	public List<ActivityDto> getAllActivities(Integer adminId) throws ResourceNotFoundException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<ActivityOutputDto> getAllActivities(Integer adminId) throws ResourceNotFoundException {
+	public ActivityDto createActivity(Integer adminId, ActivityDto activityDto) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public ActivityOutputDto createActivity(Integer adminId, ActivityInputDto activityDto) {
+	public AmusementParkDto getAmusementPark(Integer adminId) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public AmusementParkOutputDto getAmusementPark(Integer adminId) {
-		// TODO Auto-generated method stub
-		return null;
+	public Integer getAdminIdByEmail(String email) {
+
+		return adminRepo.findByEmail(email).get().getAdminId();
+
+	}
+
+	@Override
+	public AdminDto getAdminByEmail(String email) {
+
+		return this.modelMapper.map(adminRepo.findByEmail(email).get(), AdminDto.class);
+
 	}
 
 }

@@ -14,33 +14,33 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.EaseAmuse.models.Customer;
-import com.EaseAmuse.repositories.CustomerRepo;
+import com.EaseAmuse.models.Manager;
+
+import com.EaseAmuse.repositories.ManagerRepo;
 
 @Service
-public class CustomerUserDetailsService implements UserDetailsService {
+public class ManagerUserDetailsService implements UserDetailsService {
 
 	@Autowired
-	private CustomerRepo customerRepository;
+	private ManagerRepo managerRepo;
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-		Optional<Customer> opt = customerRepository.findByEmail(username);
+		Optional<Manager> opt = managerRepo.findByEmail(username);
 
 		if (opt.isPresent()) {
 
-			Customer customer = opt.get();
+			Manager manager = opt.get();
 
 			List<GrantedAuthority> authorities = new ArrayList<>();
-			SimpleGrantedAuthority sga = new SimpleGrantedAuthority(customer.getRole());
+			SimpleGrantedAuthority sga = new SimpleGrantedAuthority(manager.getRole());
 			authorities.add(sga);
 
-			return new User(customer.getEmail(), customer.getPassword(), authorities);
+			return new User(manager.getEmail(), manager.getPassword(), authorities);
 
 		} else
 			throw new BadCredentialsException("User Details not found with this username: " + username);
 
 	}
-
 }
