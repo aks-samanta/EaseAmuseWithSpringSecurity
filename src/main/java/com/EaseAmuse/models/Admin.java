@@ -24,7 +24,7 @@ public class Admin {
 	@Column(unique = true)
 	private String email;
 	private String mobile;
-	private final String role = "ADMIN";
+	private final String role = "ROLE_ADMIN";
 	private String password;
 
 }

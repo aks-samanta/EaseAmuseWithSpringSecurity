@@ -3,15 +3,18 @@ package com.EaseAmuse.services;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
 import com.EaseAmuse.exceptions.ResourceNotFoundException;
 import com.EaseAmuse.exceptions.UnauthorisedException;
 import com.EaseAmuse.models.Activity;
+import com.EaseAmuse.models.Admin;
 import com.EaseAmuse.models.AmusementPark;
 import com.EaseAmuse.models.Customer;
 import com.EaseAmuse.models.DailyActivity;
@@ -21,6 +24,7 @@ import com.EaseAmuse.payloads.AmusementParkDto;
 import com.EaseAmuse.payloads.DailyActivityDto;
 import com.EaseAmuse.payloads.ManagerDto;
 import com.EaseAmuse.repositories.ActivityRepo;
+import com.EaseAmuse.repositories.AdminRepo;
 import com.EaseAmuse.repositories.AmusementParkRepo;
 import com.EaseAmuse.repositories.CustomerRepo;
 import com.EaseAmuse.repositories.DailyActivityRepo;
@@ -30,30 +34,41 @@ import com.EaseAmuse.repositories.ManagerRepo;
 public class ManagerServicesImpl implements ManagerServices {
 
 	@Autowired
-	ManagerRepo managerRepo;
+	private ManagerRepo managerRepo;
 
 	@Autowired
-	DailyActivityRepo dailyActivityRepo;
+	private DailyActivityRepo dailyActivityRepo;
 
 	@Autowired
-	ModelMapper modelMapper;
+	private ModelMapper modelMapper;
 
 	@Autowired
-	AmusementParkServices amusementParkServices;
+	private AmusementParkServices amusementParkServices;
 
 	@Autowired
-	AmusementParkRepo parkRepo;
+	private AmusementParkRepo parkRepo;
 
 	@Autowired
-	CustomerRepo customerRepo;
+	private CustomerRepo customerRepo;
 
 	@Autowired
-	ActivityRepo activityRepo;
+	private ActivityRepo activityRepo;
 
+	@Autowired
+	private AdminRepo adminRepo;
+	
 	@Override
-	public ManagerDto insertManager(ManagerDto managerInpDto) throws ResourceNotFoundException {
+	public ManagerDto insertManager(ManagerDto managerDto) throws ResourceNotFoundException {
+		
+		Optional<Admin> adm = adminRepo.findByEmail(managerDto.getEmail());
+		Optional<Customer> cust = customerRepo.findByEmail(managerDto.getEmail());
+		Optional<Manager> man = managerRepo.findByEmail(managerDto.getEmail());
 
-		Manager manager = this.modelMapper.map(managerInpDto, Manager.class);
+		if (adm.isPresent() || cust.isPresent() || man.isPresent()) {
+			throw new UnauthorisedException(
+					"User already exists as Admin or Manager or Customer with Email Id : " + managerDto.getEmail());
+		}
+		Manager manager = this.modelMapper.map(managerDto, Manager.class);
 
 		Manager savedManager = this.managerRepo.save(manager);
 
@@ -223,7 +238,7 @@ public class ManagerServicesImpl implements ManagerServices {
 
 	@Override
 	public ManagerDto getManagerByEmail(String email) {
-		return this.modelMapper.map(managerRepo.findByEmail(email).get(), ManagerDto.class);
+		return this.modelMapper.map(managerRepo.findByEmail(email).orElseThrow(() -> new BadCredentialsException("Invalid Username or password")), ManagerDto.class);
 
 	}
 

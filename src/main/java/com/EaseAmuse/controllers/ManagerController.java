@@ -2,14 +2,18 @@ package com.EaseAmuse.controllers;
 
 import java.util.List;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.EaseAmuse.config.SecurityConstants;
 import com.EaseAmuse.payloads.ActivityDto;
 
 import com.EaseAmuse.payloads.AmusementParkDto;
@@ -28,6 +33,8 @@ import com.EaseAmuse.services.ManagerServices;
 
 @RestController
 @RequestMapping("/api/managers")
+@PreAuthorize("hasAuthority('ROLE_MANAGER')")
+@CrossOrigin(origins = "*")
 public class ManagerController {
 
 	@Autowired
@@ -46,16 +53,14 @@ public class ManagerController {
 	}
 
 	@GetMapping("/signIn")
-	public ResponseEntity<ManagerDto> getLoggedInCustomerDetailsHandler(Authentication auth) {
+	public ResponseEntity<ManagerDto> getLoggedInCustomerDetailsHandler(Authentication auth, HttpServletResponse response) {
 
 		ManagerDto manager = managerServices.getManagerByEmail(auth.getName());
-
 		// to get the token in body, pass HttpServletResponse inside this method
-		// parameter
-		// System.out.println(response.getHeaders(SecurityConstants.JWT_HEADER));
+				// parameter
+			System.out.println(response.getHeaders(SecurityConstants.JWT_HEADER));
 
-		return new ResponseEntity<>(manager, HttpStatus.ACCEPTED);
-
+			return new ResponseEntity<>(manager, HttpStatus.ACCEPTED);
 	}
 
 	@PutMapping("/")

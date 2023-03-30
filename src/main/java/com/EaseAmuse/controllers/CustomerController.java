@@ -7,9 +7,11 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,6 +33,8 @@ import com.EaseAmuse.services.TicketServices;
 
 @RestController
 @RequestMapping("/api/customers")
+@PreAuthorize("hasAuthority('CUSTOMER')")
+@CrossOrigin(origins = "*")
 public class CustomerController {
 
 	@Autowired
@@ -71,6 +75,7 @@ public class CustomerController {
 	}
 
 	@GetMapping("/")
+	
 	public ResponseEntity<CustomerDto> getLoggedInCustomer() {
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();

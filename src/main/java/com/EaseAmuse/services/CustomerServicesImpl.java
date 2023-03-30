@@ -2,6 +2,7 @@ package com.EaseAmuse.services;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -11,12 +12,17 @@ import org.springframework.stereotype.Service;
 
 import com.EaseAmuse.exceptions.CustomerException;
 import com.EaseAmuse.exceptions.ResourceNotFoundException;
+import com.EaseAmuse.exceptions.UnauthorisedException;
+import com.EaseAmuse.models.Admin;
 import com.EaseAmuse.models.AmusementPark;
 import com.EaseAmuse.models.Customer;
+import com.EaseAmuse.models.Manager;
 import com.EaseAmuse.payloads.CustomerDto;
 import com.EaseAmuse.payloads.DailyActivityDto;
+import com.EaseAmuse.repositories.AdminRepo;
 import com.EaseAmuse.repositories.AmusementParkRepo;
 import com.EaseAmuse.repositories.CustomerRepo;
+import com.EaseAmuse.repositories.ManagerRepo;
 
 @Service
 public class CustomerServicesImpl implements CustomerServices {
@@ -30,9 +36,24 @@ public class CustomerServicesImpl implements CustomerServices {
 	@Autowired
 	private AmusementParkRepo amusementParkRepo;
 
+	@Autowired
+	private AdminRepo adminRepo;
+	
+	@Autowired
+	private ManagerRepo managerRepo;
+	
 	@Override
 	public CustomerDto registerCustomer(CustomerDto customerDTO) {
+		
+		Optional<Admin> adm = adminRepo.findByEmail(customerDTO.getEmail());
+		Optional<Customer> cust = customerRepo.findByEmail(customerDTO.getEmail());
+		Optional<Manager> man = managerRepo.findByEmail(customerDTO.getEmail());
 
+		if (adm.isPresent() || cust.isPresent() || man.isPresent()) {
+			throw new UnauthorisedException(
+					"user already exists as Admin or Manager or Customer with Email Id : " + customerDTO.getEmail());
+		}
+		
 		Customer customer = this.modelMapper.map(customerDTO, Customer.class);
 
 		Customer savedCustomer = this.customerRepo.save(customer);
@@ -108,6 +129,7 @@ public class CustomerServicesImpl implements CustomerServices {
 
 	@Override
 	public Integer getUserIdByEmail(String email) {
+		System.out.println(email);
 		return this.customerRepo.findByEmail(email).get().getCustomerId();
 	}
 

@@ -27,7 +27,7 @@ public class Manager {
 	@Column(unique = true)
 	private String email;
 	private String mobile;
-	private final String role = "MANAGER";
+	private final String role = "ROLE_MANAGER";
 	@OneToOne
 	private AmusementPark amusementPark;
 

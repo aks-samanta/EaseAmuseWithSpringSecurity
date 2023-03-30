@@ -7,27 +7,29 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 @Configuration
 public class AppConfig {
+	private static final String[] AUTH_WHITE_LIST = { "/v3/api-docs/**", "/swagger-ui/**", "/v2/api-docs/**",
+			"/swagger-resources/**" };
 
 	@Bean
-	public SecurityFilterChain springSecurityConfiguration(HttpSecurity http) throws Exception {
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().csrf().disable()
+		http.sessionManagement()
+				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+				.and().csrf().disable()
 				.authorizeHttpRequests()
-				.requestMatchers(HttpMethod.GET, "/amusementParks/**").permitAll()
-				.requestMatchers(HttpMethod.GET, "/activities/**").permitAll()
-				.requestMatchers(HttpMethod.POST, "/customers/").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
-				.requestMatchers(HttpMethod.GET, "/customers/**").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
-				.requestMatchers(HttpMethod.GET, "/managers/**").hasAnyRole("ADMIN", "MANAGER")
-				.requestMatchers("/managers/**").hasRole("MANAGER")
-				.requestMatchers("/admins/**").hasRole("ADMIN")
-				.requestMatchers("/customers/**").hasRole("CUSTOMER")
-				.anyRequest().authenticated()
-				.and()
+				.requestMatchers(AUTH_WHITE_LIST).permitAll()
+				.requestMatchers(HttpMethod.POST, "/api/managers/", "/api/admins/", "/api/customers/").permitAll()
+				.requestMatchers(HttpMethod.GET, "/api/admins/signIn", "/api/managers/signIn", "/api/customers/signIn")
+				.permitAll()
+//				.requestMatchers(HttpMethod.GET, "/api/customers/**").hasAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_CUSTOMER")
+//				.requestMatchers(HttpMethod.GET, "/api/managers/**").hasAnyRole("ROLE_ADMIN", "ROLE_MANAGER")
+				.anyRequest().authenticated().and()
 				.addFilterAfter(new JwtTokenGeneratorFilter(), BasicAuthenticationFilter.class)
 				.addFilterBefore(new JwtTokenValidatorFilter(), BasicAuthenticationFilter.class).formLogin().and()
 				.httpBasic();

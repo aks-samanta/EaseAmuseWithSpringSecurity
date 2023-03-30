@@ -2,13 +2,17 @@ package com.EaseAmuse.services;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.EaseAmuse.exceptions.ResourceNotFoundException;
+import com.EaseAmuse.exceptions.UnauthorisedException;
 import com.EaseAmuse.models.Admin;
+import com.EaseAmuse.models.Customer;
+import com.EaseAmuse.models.Manager;
 import com.EaseAmuse.payloads.ActivityDto;
 import com.EaseAmuse.payloads.AdminDto;
 import com.EaseAmuse.payloads.AmusementParkDto;
@@ -18,6 +22,7 @@ import com.EaseAmuse.repositories.AdminRepo;
 import com.EaseAmuse.repositories.AmusementParkRepo;
 import com.EaseAmuse.repositories.CustomerRepo;
 import com.EaseAmuse.repositories.DailyActivityRepo;
+import com.EaseAmuse.repositories.ManagerRepo;
 
 @Service
 public class AdminServicesImpl implements AdminServices {
@@ -43,8 +48,20 @@ public class AdminServicesImpl implements AdminServices {
 	@Autowired
 	ActivityRepo activityRepo;
 
+	@Autowired
+	ManagerRepo managerRepo;
+
 	@Override
 	public AdminDto insertAdmin(AdminDto adminInpDto) throws ResourceNotFoundException {
+
+		Optional<Admin> adm = adminRepo.findByEmail(adminInpDto.getEmail());
+		Optional<Customer> cust = customerRepo.findByEmail(adminInpDto.getEmail());
+		Optional<Manager> man = managerRepo.findByEmail(adminInpDto.getEmail());
+
+		if (adm.isPresent() || cust.isPresent() || man.isPresent()) {
+			throw new UnauthorisedException(
+					"user already exists as Admin or Manager or Customer with Email Id : " + adminInpDto.getEmail());
+		}
 
 		Admin admin = this.modelMapper.map(adminInpDto, Admin.class);
 
