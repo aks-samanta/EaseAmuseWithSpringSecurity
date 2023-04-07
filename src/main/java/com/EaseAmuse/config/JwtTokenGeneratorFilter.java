@@ -35,21 +35,21 @@ public class JwtTokenGeneratorFilter extends OncePerRequestFilter {
 			SecretKey key = Keys.hmacShaKeyFor(SecurityConstants.JWT_KEY.getBytes());
 
 			String jwt = Jwts.builder()
-					.setIssuer("Akash")
-					.setSubject("JWT Token")
-					.claim("username", authentication.getName())
-					.claim("role", getRole(authentication.getAuthorities()))
-					.setIssuedAt(new Date())
-					.setExpiration(new Date(new Date().getTime() + 30000000)) // expiration time
-																										// // of 8 hours
-					.signWith(key).compact();
+							.setIssuer("Akash")
+							.setSubject("JWT Token")
+							.claim("username", authentication.getName())
+							.claim("role", getRole(authentication.getAuthorities()))
+							.setIssuedAt(new Date())
+							.setExpiration(new Date(new Date().getTime() + 30000000)) // expiration time
+																												// // of 8 hours
+							.signWith(key).compact();
 
 			response.setHeader(SecurityConstants.JWT_HEADER, jwt);
 			
 			System.out.println("authentication != null in generator" );
 
 		}
-		System.out.println("generator about to end " );
+		System.out.println("generator about to end ");
 
 		filterChain.doFilter(request, response);
 
@@ -69,8 +69,10 @@ public class JwtTokenGeneratorFilter extends OncePerRequestFilter {
 //this make sure that this filter will execute only for first time when client call the api /login at first time
 	@Override
 	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-
-		return  request.getServletPath().equals("api/customers/signIn");
+		System.out.println(request.getServletPath());
+		return  !(request.getServletPath().equals("/api/customers/signIn")
+				 || request.getServletPath().equals("/api/managers/signIn")
+				 || request.getServletPath().equals("/api/admins/signIn"));
 				
 	}
 

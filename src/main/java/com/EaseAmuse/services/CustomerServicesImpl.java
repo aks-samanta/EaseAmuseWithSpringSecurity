@@ -129,7 +129,7 @@ public class CustomerServicesImpl implements CustomerServices {
 
 	@Override
 	public Integer getUserIdByEmail(String email) {
-		System.out.println(email);
+		
 		return this.customerRepo.findByEmail(email).get().getCustomerId();
 	}
 

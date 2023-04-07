@@ -34,21 +34,22 @@ public class MyUserDetailsService implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		System.out.println("just entered MyUserDeailsService classe's loadByUsername method" );
 
 		Optional<Customer> cst = customerRepository.findByEmail(username);
 
-//System.out.println(cst.get().getRole());
 
 		if (cst.isPresent()) {
 
 			Customer customer = cst.get();
-
+			System.out.println("loadUserByUsername method user is customer");
 			List<GrantedAuthority> authorities = new ArrayList<>();
 			SimpleGrantedAuthority sga = new SimpleGrantedAuthority(customer.getRole());
-			System.out.println(sga);
+			System.out.println(sga + " = new SimpleGrantedAuthority(customer.getRole())");
 			authorities.add(sga);
-
-			return new User(customer.getEmail(), customer.getPassword(), authorities);
+			User user = new User(customer.getEmail(), customer.getPassword(), authorities);
+			System.out.println( user  + " = new User(customer.getEmail(), customer.getPassword(), authorities");
+			return user;
 
 		}
 
@@ -57,12 +58,15 @@ public class MyUserDetailsService implements UserDetailsService {
 		if (man.isPresent()) {
 
 			Manager manager = man.get();
-
+			System.out.println("loadUserByUsername method user is Manager");
 			List<GrantedAuthority> authorities = new ArrayList<>();
 			SimpleGrantedAuthority sga = new SimpleGrantedAuthority(manager.getRole());
+			System.out.println(sga + " = new SimpleGrantedAuthority(manager.getRole())");
 			authorities.add(sga);
+			User user = new User(manager.getEmail(), manager.getPassword(), authorities);
+			System.out.println( user  + " = new User(manager.getEmail(), manager.getPassword(), authorities");
 
-			return new User(manager.getEmail(), manager.getPassword(), authorities);
+			return user;
 
 		}
 
@@ -71,12 +75,15 @@ public class MyUserDetailsService implements UserDetailsService {
 		if (adm.isPresent()) {
 
 			Admin admin = adm.get();
-
+			System.out.println("loadUserByUsername method user is Admin");
 			List<GrantedAuthority> authorities = new ArrayList<>();
 			SimpleGrantedAuthority sga = new SimpleGrantedAuthority(admin.getRole());
+			System.out.println(sga + " = new SimpleGrantedAuthority(admin.getRole())");
 			authorities.add(sga);
+			User user = new User(admin.getEmail(), admin.getPassword(), authorities);
+			System.out.println( user  + " = new User(admin.getEmail(), admin.getPassword(), authorities)");
 
-			return new User(admin.getEmail(), admin.getPassword(), authorities);
+			return user;
 
 		}
 

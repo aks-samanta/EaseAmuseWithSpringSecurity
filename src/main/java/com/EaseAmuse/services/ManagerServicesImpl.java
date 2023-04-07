@@ -103,9 +103,9 @@ public class ManagerServicesImpl implements ManagerServices {
 	}
 
 	@Override
-	public AmusementParkDto createAmusementPark(AmusementParkDto amusementParkInpDto) throws ResourceNotFoundException {
+	public AmusementParkDto createAmusementPark(AmusementParkDto amusementParkInpDto, Integer managerId) throws ResourceNotFoundException {
 
-		return amusementParkServices.createAmusementPark(amusementParkInpDto);
+		return amusementParkServices.createAmusementPark(amusementParkInpDto, managerId);
 
 	}
 
@@ -201,13 +201,13 @@ public class ManagerServicesImpl implements ManagerServices {
 				.orElseThrow(() -> new ResourceNotFoundException("Activity", "Activity Id",
 						dailyActivityDto.getActivityId().toString()));
 
-		AmusementPark park = this.parkRepo.findById(manager.getAmusementPark().getParkId())
+		AmusementPark park = this.parkRepo.findById(manager.getAmusementPark().getId())
 				.orElseThrow(() -> new ResourceNotFoundException("Amusement Park", "Park Id",
-						manager.getAmusementPark().getParkId().toString()));
+						manager.getAmusementPark().getId().toString()));
 
 //System.out.println(park.getParkId());
 
-		if (activity.getAmusementPark().getParkId() == manager.getAmusementPark().getParkId()) {
+		if (activity.getAmusementPark().getId() == manager.getAmusementPark().getId()) {
 			DailyActivity dailyActivity = this.modelMapper.map(dailyActivityDto, DailyActivity.class);
 
 			dailyActivity.setActivity(activity);

@@ -15,7 +15,7 @@ import lombok.Setter;
 public class AmusementParkDto {
 
 	@JsonProperty(access = Access.READ_ONLY)
-	private Integer parkId;
+	private Integer id;
 
 	@JsonProperty(access = Access.READ_WRITE)
 	private String name;

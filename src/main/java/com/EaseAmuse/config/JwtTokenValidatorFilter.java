@@ -32,28 +32,35 @@ public class JwtTokenValidatorFilter extends OncePerRequestFilter {
 
 		if (jwt != null) {
 System.out.println("jwt != null in validator");
+System.out.println(request.getServletPath());
+
 			try {
 
 				// extracting the word Bearer
 				jwt = jwt.substring(7);
-
+				System.out.println( " jwt in validator " + jwt);
 				SecretKey key = Keys.hmacShaKeyFor(SecurityConstants.JWT_KEY.getBytes());
+				System.out.println( " key in validator " + key);
 
-				Claims claims = Jwts
-									.parserBuilder()
+				Claims claims = Jwts.parserBuilder()
 									.setSigningKey(key)
 									.build()
 									.parseClaimsJws(jwt)
 									.getBody();
+				System.out.println( " claims in validator " + claims);
 
 				String username = String.valueOf(claims.get("username"));
-
+				System.out.println(username);
+				
+				
 				String role = String.valueOf(claims.get("role"));
-
+				System.out.println(role);
+				
+				
 				List<GrantedAuthority> authorities = new ArrayList<>();
 				authorities.add(new SimpleGrantedAuthority(role));
 				
-				System.out.println("From jwtTokenValidator Role : " + role + authorities.get(0));
+				System.out.println("From jwtTokenValidator authorities : " + authorities);
 				
 				Authentication auth = new UsernamePasswordAuthenticationToken(username, null, authorities);
 
@@ -74,8 +81,10 @@ System.out.println("jwt != null in validator");
 
 	@Override
 	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-
-		return !request.getServletPath().equals("api/customers/signIn");
+		System.out.println(request.getServletPath());
+		return (request.getServletPath().equals("/api/customers/signIn")
+				|| request.getServletPath().equals("/api/managers/signIn")
+				|| request.getServletPath().equals("/api/admins/signIn"));
 	}
 
 }

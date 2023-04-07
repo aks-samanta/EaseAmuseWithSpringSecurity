@@ -27,13 +27,13 @@ import com.EaseAmuse.config.SecurityConstants;
 import com.EaseAmuse.payloads.ActivityDto;
 
 import com.EaseAmuse.payloads.AmusementParkDto;
+import com.EaseAmuse.payloads.CustomerDto;
 import com.EaseAmuse.payloads.DailyActivityDto;
 import com.EaseAmuse.payloads.ManagerDto;
 import com.EaseAmuse.services.ManagerServices;
 
 @RestController
 @RequestMapping("/api/managers")
-@PreAuthorize("hasAuthority('ROLE_MANAGER')")
 @CrossOrigin(origins = "*")
 public class ManagerController {
 
@@ -53,7 +53,7 @@ public class ManagerController {
 	}
 
 	@GetMapping("/signIn")
-	public ResponseEntity<ManagerDto> getLoggedInCustomerDetailsHandler(Authentication auth, HttpServletResponse response) {
+	public ResponseEntity<ManagerDto> getLoggedInManagerDetailsHandler(Authentication auth, HttpServletResponse response) {
 
 		ManagerDto manager = managerServices.getManagerByEmail(auth.getName());
 		// to get the token in body, pass HttpServletResponse inside this method
@@ -62,8 +62,17 @@ public class ManagerController {
 
 			return new ResponseEntity<>(manager, HttpStatus.ACCEPTED);
 	}
+	@GetMapping("/")
+	@PreAuthorize("hasRole('MANAGER')")
+	public ResponseEntity<ManagerDto> getLoggedInManager() {
+		
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
+		return new ResponseEntity<ManagerDto>(this.managerServices.getManagerByEmail(auth.getPrincipal().toString()), HttpStatus.FOUND);
+
+	}
 	@PutMapping("/")
+	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<ManagerDto> updateManager(@Valid @RequestBody ManagerDto managerDto) {
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -74,6 +83,7 @@ public class ManagerController {
 	}
 
 	@DeleteMapping("/")
+	@PreAuthorize("hasAnyRole('MANAGER')")
 	public ResponseEntity<ManagerDto> deleteManager() {
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -84,20 +94,20 @@ public class ManagerController {
 
 	}
 
-	@PostMapping("/amusementParks/")
+	@PostMapping("/amusementParks")
+	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<AmusementParkDto> createAmusementPark(@Valid @RequestBody AmusementParkDto parkDto) {
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
 		Integer loggedInUserId = this.managerServices.getUserIdByEmail(auth.getPrincipal().toString());
 
-		parkDto.setManagerId(loggedInUserId);
-
-		return new ResponseEntity<>(this.managerServices.createAmusementPark(parkDto), HttpStatus.CREATED);
+		return new ResponseEntity<>(this.managerServices.createAmusementPark(parkDto, loggedInUserId), HttpStatus.CREATED);
 
 	}
 
-	@PostMapping("/dailyActivities/")
+	@PostMapping("/dailyActivities")
+	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<DailyActivityDto> createDailyActivity(@Valid @RequestBody DailyActivityDto dailyActivityDto) {
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -109,7 +119,8 @@ public class ManagerController {
 
 	}
 
-	@GetMapping("/dailyActivities/")
+	@GetMapping("/dailyActivities")
+	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<List<DailyActivityDto>> getAllDailyActivities() {
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -119,8 +130,9 @@ public class ManagerController {
 		return new ResponseEntity<>(this.managerServices.getAllDailyActivities(loggedInUserId), HttpStatus.OK);
 	}
 
-	@GetMapping("/activities/")
-	public ResponseEntity<List<ActivityDto>> getAllActivities(@RequestParam("session") String uuid) {
+	@GetMapping("/activities")
+	@PreAuthorize("hasRole('MANAGER')")
+	public ResponseEntity<List<ActivityDto>> getAllActivities() {
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -131,8 +143,9 @@ public class ManagerController {
 
 	}
 
-	@PostMapping("/activities/")
-	public ResponseEntity<ActivityDto> addActivity(@RequestParam("session") String uuid, ActivityDto activityDto) {
+	@PostMapping("/activities")
+	@PreAuthorize("hasRole('MANAGER')")
+	public ResponseEntity<ActivityDto> addActivity(@Valid @RequestBody ActivityDto activityDto) {
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -143,8 +156,9 @@ public class ManagerController {
 
 	}
 
-	@GetMapping("/amusementParks/")
-	public ResponseEntity<AmusementParkDto> getAmusementPark(@RequestParam("session") String uuid) {
+	@GetMapping("/amusementParks")
+	@PreAuthorize("hasRole('MANAGER')")
+	public ResponseEntity<AmusementParkDto> getAmusementPark() {
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 

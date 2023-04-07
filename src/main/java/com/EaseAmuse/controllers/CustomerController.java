@@ -33,7 +33,6 @@ import com.EaseAmuse.services.TicketServices;
 
 @RestController
 @RequestMapping("/api/customers")
-@PreAuthorize("hasAuthority('CUSTOMER')")
 @CrossOrigin(origins = "*")
 public class CustomerController {
 
@@ -69,15 +68,15 @@ public class CustomerController {
 		// to get the token in body, pass HttpServletResponse inside this method
 		// parameter
 		// System.out.println(response.getHeaders(SecurityConstants.JWT_HEADER));
-
+		System.out.println("signIn");
 		return new ResponseEntity<>(customer, HttpStatus.ACCEPTED);
 
 	}
 
 	@GetMapping("/")
-	
+	@PreAuthorize("hasRole('CUSTOMER')")
 	public ResponseEntity<CustomerDto> getLoggedInCustomer() {
-
+		System.out.println("/");
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
 		Integer loggedInUserId = this.customerServices.getUserIdByEmail(auth.getPrincipal().toString());
@@ -87,6 +86,7 @@ public class CustomerController {
 	}
 
 	@PutMapping("/")
+	@PreAuthorize("hasRole('CUSTOMER')")
 	public ResponseEntity<CustomerDto> updateCustomer(@Valid @RequestBody CustomerDto customerDTO) {
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -98,6 +98,7 @@ public class CustomerController {
 	}
 
 	@DeleteMapping("/")
+	@PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
 	public ResponseEntity<CustomerDto> deleteCustomer() {
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -108,6 +109,7 @@ public class CustomerController {
 	}
 
 	@GetMapping("/{customerId}")
+	@PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
 	public ResponseEntity<CustomerDto> getCustomerById(@PathVariable("customerId") Integer customerId) {
 
 		return new ResponseEntity<CustomerDto>(this.customerServices.getCustomerById(customerId), HttpStatus.FOUND);
@@ -115,6 +117,7 @@ public class CustomerController {
 	}
 
 	@GetMapping("/amusementParks/{city}")
+	@PreAuthorize("hasAnyRole('CUSTOMER','MANAGER', 'ADMIN')")
 	public ResponseEntity<List<AmusementParkDto>> getAmusementParksByCity(@PathVariable("city") String city) {
 
 		return new ResponseEntity<List<AmusementParkDto>>(this.parkServices.getAmusementParksByCity(city),
@@ -123,6 +126,7 @@ public class CustomerController {
 	}
 
 	@GetMapping("/dailyActivities/{parkId}")
+	@PreAuthorize("hasAnyRole('CUSTOMER','MANAGER', 'ADMIN')")
 	public ResponseEntity<List<DailyActivityDto>> getDailyActivityOfPark(@PathVariable("parkId") Integer parkId) {
 
 		return new ResponseEntity<List<DailyActivityDto>>(this.customerServices.getDailyActivityOfPark(parkId),
@@ -131,6 +135,7 @@ public class CustomerController {
 	}
 
 	@GetMapping("/bookings/")
+	@PreAuthorize("hasRole('CUSTOMER')")
 	public ResponseEntity<BookingDto> getBooking() {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -140,7 +145,8 @@ public class CustomerController {
 
 	}
 
-	@GetMapping("/customers/allBookings")
+	@GetMapping("/allBookings")
+	@PreAuthorize("hasRole('CUSTOMER')")
 	public ResponseEntity<List<BookingDto>> getAllBookingsOfCustomer() {
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -153,6 +159,7 @@ public class CustomerController {
 	}
 
 	@PutMapping("/bookings/cancelBookings")
+	@PreAuthorize("hasRole('CUSTOMER')")
 	public ResponseEntity<BookingDto> cancelBooking(Integer bookingId) {
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -165,6 +172,7 @@ public class CustomerController {
 	}
 
 	@PutMapping("/tickets/cancelTickets")
+	@PreAuthorize("hasRole('CUSTOMER')")
 	public ResponseEntity<TicketDto> cancelTicket(Integer ticketId) {
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -174,7 +182,8 @@ public class CustomerController {
 		return new ResponseEntity<TicketDto>(this.ticketServices.cancelTicket(loggedInUserId, ticketId), HttpStatus.OK);
 	}
 
-	@GetMapping("/customers/bookings/{bookingId}")
+	@GetMapping("/bookings/{bookingId}")
+	@PreAuthorize("hasRole('CUSTOMER')")
 	public ResponseEntity<BookingDto> getBookingById(@PathVariable Integer bookingId) {
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -185,7 +194,8 @@ public class CustomerController {
 				HttpStatus.OK);
 	}
 
-	@PostMapping("/tickets/")
+	@PostMapping("/tickets")
+	@PreAuthorize("hasRole('CUSTOMER')")
 	public ResponseEntity<TicketDto> bookTicket(@Valid @RequestBody TicketDto ticketDto) {
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();

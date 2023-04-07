@@ -25,4 +25,6 @@ public interface AmusementParkServices {
 
 	// delete
 	AmusementParkDto removeAmusementpark(Integer parkId) throws ResourceNotFoundException;
+
+	AmusementParkDto createAmusementPark(AmusementParkDto amusementParkInpDto, Integer managerId);
 }

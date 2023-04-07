@@ -28,11 +28,11 @@ public class AmusementParkServicesImpl implements AmusementParkServices {
 	private AmusementParkRepo amusementParkRepo;
 
 	@Override
-	public AmusementParkDto createAmusementPark(AmusementParkDto ParkDto) {
+	public AmusementParkDto createAmusementPark(AmusementParkDto parkDto) {
 
-		Manager manager = this.managerRepo.findById(ParkDto.getManagerId()).orElseThrow(
-				() -> new ResourceNotFoundException("Customer", "customerId", ParkDto.getManagerId().toString()));
-		AmusementPark park = this.modelMapper.map(ParkDto, AmusementPark.class);
+		Manager manager = this.managerRepo.findById(parkDto.getManagerId()).orElseThrow(
+				() -> new ResourceNotFoundException("Manager", "Manager Id", parkDto.getManagerId().toString()));
+		AmusementPark park = this.modelMapper.map(parkDto, AmusementPark.class);
 
 		park.setManager(manager);
 		manager.setAmusementPark(park);
@@ -85,7 +85,7 @@ public class AmusementParkServicesImpl implements AmusementParkServices {
 		AmusementPark park = this.amusementParkRepo.findById(parkId)
 				.orElseThrow(() -> new ResourceNotFoundException("Amusement Park", "Park Id", parkId.toString()));
 
-		if (manager.getAmusementPark().getParkId() == park.getParkId()) {
+		if (manager.getAmusementPark().getId() == park.getId()) {
 			park.setCity(parkDto.getCity());
 			park.setName(parkDto.getName());
 			AmusementPark updatedPark = this.amusementParkRepo.save(park);
@@ -106,6 +106,23 @@ public class AmusementParkServicesImpl implements AmusementParkServices {
 
 		return this.modelMapper.map(park, AmusementParkDto.class);
 
+	}
+
+	@Override
+	public AmusementParkDto createAmusementPark(AmusementParkDto parkDto, Integer managerId) {
+		Manager manager = this.managerRepo.findById(managerId).orElseThrow(
+				() -> new ResourceNotFoundException("Manager", "managerId", managerId.toString()));
+		AmusementPark park = new AmusementPark();
+		park.setCity(parkDto.getCity());
+		park.setName(parkDto.getName());
+System.out.println(park);
+		park.setManager(manager);
+		manager.setAmusementPark(park);
+System.out.println(manager);
+		this.amusementParkRepo.save(park);
+		this.managerRepo.save(manager);
+
+		return this.modelMapper.map(park, AmusementParkDto.class);
 	}
 
 }

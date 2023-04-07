@@ -18,8 +18,6 @@ public interface ManagerServices {
 
 	public ManagerDto deleteManager(Integer managerId) throws ResourceNotFoundException;
 
-	public AmusementParkDto createAmusementPark(AmusementParkDto amusementParkInpDto) throws ResourceNotFoundException;
-
 	public List<DailyActivityDto> getAllDailyActivities(Integer managerId) throws ResourceNotFoundException;
 
 	public List<DailyActivityDto> getDailyActivitiesCustomerwise(Integer customerId) throws ResourceNotFoundException;
@@ -39,4 +37,7 @@ public interface ManagerServices {
 	public Integer getUserIdByEmail(String email);
 
 	public ManagerDto getManagerByEmail(String email);
+
+	public AmusementParkDto createAmusementPark(AmusementParkDto amusementParkInpDto, Integer managerId)
+			throws ResourceNotFoundException;
 }

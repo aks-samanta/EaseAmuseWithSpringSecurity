@@ -19,13 +19,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.EaseAmuse.payloads.AdminDto;
 import com.EaseAmuse.payloads.AmusementParkDto;
+import com.EaseAmuse.payloads.CustomerDto;
 import com.EaseAmuse.payloads.ManagerDto;
 import com.EaseAmuse.services.AdminServices;
 import com.EaseAmuse.services.ManagerServices;
 
 @RestController
 @RequestMapping("/api/admins")
-@PreAuthorize("hasAuthority('ADMIN')")
 @CrossOrigin(origins = "*")
 public class AdminController {
 
@@ -48,7 +48,7 @@ public class AdminController {
 	}
 
 	@GetMapping("/signIn")
-	public ResponseEntity<AdminDto> getLoggedInCustomerDetailsHandler(Authentication auth) {
+	public ResponseEntity<AdminDto> getLoggedInAdminDetailsHandler(Authentication auth) {
 
 		AdminDto admin = adminServices.getAdminByEmail(auth.getName());
 
@@ -60,7 +60,19 @@ public class AdminController {
 
 	}
 
+	@GetMapping("/")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<AdminDto> getLoggedInCustomer() {
+
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		return new ResponseEntity<AdminDto>(this.adminServices.getAdminByEmail(auth.getPrincipal().toString()),
+				HttpStatus.FOUND);
+
+	}
+
 	@PutMapping("/")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<AdminDto> updateAdmin(@Valid @RequestBody AdminDto adminDto) {
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -72,6 +84,7 @@ public class AdminController {
 	}
 
 	@PostMapping("/managers")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<ManagerDto> createManager(@Valid @RequestBody ManagerDto managerDto) {
 
 		return new ResponseEntity<>(this.managerServices.insertManager(managerDto), HttpStatus.CREATED);
@@ -79,6 +92,7 @@ public class AdminController {
 	}
 
 	@PostMapping("/amusementParks")
+	@PreAuthorize("hasRole('MANAGER')")
 	public ResponseEntity<AmusementParkDto> createAmusementPark(@Valid @RequestBody AmusementParkDto parkDto) {
 
 		return new ResponseEntity<>(this.adminServices.createAmusementPark(parkDto), HttpStatus.CREATED);
