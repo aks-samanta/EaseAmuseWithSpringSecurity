@@ -1,9 +1,11 @@
 # EaseAmuse With Spring Security
 ## Team Members :
-1. Akash Samanta
-2. Alok kumar
-3. Harish Sonkusare
-4. Chiranjivi Pattanayak
+
+1. [Akash Samanta](https://github.com/aks-samanta)
+2. [Alok Kumar](https://github.com/alokkr11)
+3. [Harish Sonkusare](https://github.com/Harish7775)
+4. [Chiranjivi Pattanayak](https://github.com/chiranjivi-7)
+
 
 <div align="center">
 
