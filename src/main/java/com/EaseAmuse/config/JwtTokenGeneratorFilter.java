@@ -3,8 +3,6 @@ package com.EaseAmuse.config;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.crypto.SecretKey;
 
@@ -40,8 +38,7 @@ public class JwtTokenGeneratorFilter extends OncePerRequestFilter {
 							.claim("username", authentication.getName())
 							.claim("role", getRole(authentication.getAuthorities()))
 							.setIssuedAt(new Date())
-							.setExpiration(new Date(new Date().getTime() + 30000000)) // expiration time
-																												// // of 8 hours
+							.setExpiration(new Date(new Date().getTime() + 30000000)) // expiration time of 8 hours
 							.signWith(key).compact();
 
 			response.setHeader(SecurityConstants.JWT_HEADER, jwt);

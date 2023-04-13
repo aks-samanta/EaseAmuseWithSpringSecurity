@@ -92,7 +92,7 @@ public class AdminController {
 	}
 
 	@PostMapping("/amusementParks")
-	@PreAuthorize("hasRole('MANAGER')")
+	@PreAuthorize("hasRole('MANAGER', 'ADMIN')")
 	public ResponseEntity<AmusementParkDto> createAmusementPark(@Valid @RequestBody AmusementParkDto parkDto) {
 
 		return new ResponseEntity<>(this.adminServices.createAmusementPark(parkDto), HttpStatus.CREATED);
